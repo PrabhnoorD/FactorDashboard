@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+dashboard_data.json
+dashboard_validation.xlsx
+Open Dashboard.bat
+forgealpha_dashboard.html
