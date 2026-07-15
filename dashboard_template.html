@@ -2239,13 +2239,18 @@
   // is decoupled from the reactive render() pipeline -- it only runs when the user clicks
   // "Run attribution", not on every slider tick.
 
+  // A trailing time-of-day (e.g. "2026-07-01 00:00:00", the default string form of a
+  // pandas Timestamp) is matched and discarded here, not left for the new Date(s)
+  // fallback below -- that fallback parses in local time but reads back out via UTC,
+  // which silently shifts the date by a day in any timezone ahead of UTC.
+  const TIME_SUFFIX = /(?:[ T]\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?)?$/;
   function parseAttribDate(s) {
-    let m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+    let m = s.match(new RegExp('^(\\d{4})[-\\/](\\d{1,2})[-\\/](\\d{1,2})' + TIME_SUFFIX.source));
     if (m) return m[1] + '-' + String(+m[2]).padStart(2, '0') + '-' + String(+m[3]).padStart(2, '0');
-    m = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+    m = s.match(new RegExp('^(\\d{1,2})[-\\/](\\d{1,2})[-\\/](\\d{4})' + TIME_SUFFIX.source));
     if (m) return m[3] + '-' + String(+m[2]).padStart(2, '0') + '-' + String(+m[1]).padStart(2, '0'); // DD-MM-YYYY
     const d = new Date(s);
-    if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+    if (!isNaN(d.getTime())) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     return null;
   }
   function parseAttribInput(text) {
