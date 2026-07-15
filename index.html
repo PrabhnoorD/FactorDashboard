@@ -2254,10 +2254,16 @@
     lines.forEach((raw, i) => {
       const line = raw.trim();
       if (!line) return;
-      const parts = line.split(/[,\t]/).map(s => s.trim()).filter(s => s !== '');
-      if (parts.length < 2) { if (rows.length) badLines.push(i + 1); return; }
-      const dateStr = parseAttribDate(parts[0]);
-      const val = parseFloat(parts[1].replace(/[,%₹$\s]/g, ''));
+      // Split on the FIRST comma/tab only -- a thousands-separator-formatted value
+      // (e.g. "2026-07-15,53,859.75") has more than one comma, and everything after
+      // the first separator is the value; extra commas inside it are stripped below.
+      const sepIdx = line.search(/[,\t]/);
+      if (sepIdx === -1) { if (rows.length) badLines.push(i + 1); return; }
+      const datePart = line.slice(0, sepIdx).trim();
+      const valuePart = line.slice(sepIdx + 1).trim();
+      if (!datePart || !valuePart) { if (rows.length) badLines.push(i + 1); return; }
+      const dateStr = parseAttribDate(datePart);
+      const val = parseFloat(valuePart.replace(/[,\t%₹$\s]/g, ''));
       if (dateStr === null || !isFinite(val)) {
         if (i === 0 && rows.length === 0) return; // most likely a header row -- ignore silently
         badLines.push(i + 1);
