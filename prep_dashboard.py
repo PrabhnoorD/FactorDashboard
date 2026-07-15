@@ -196,6 +196,7 @@ def build_payload():
                 "sectorsExcess": {s: [round(float(v), 3) for v in ff_sectors_excess[s].values] for s in SECTOR_ORDER},
                 "factors": {f: [round(float(v), 3) for v in ff_factors[f].values] for f in FF_FACTOR_ORDER},
                 "mktrf": [round(float(v), 3) for v in ff_mktrf.values],
+                "rf": [round(float(v), 3) for v in ff_joint["Rf"].values],
             },
             "crowding": ff_crowding_out,
         },

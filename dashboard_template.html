@@ -119,6 +119,28 @@
     font: inherit; font-size: 13px; font-weight: 600; color: var(--text-primary);
     background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; width: 100%;
   }
+  .attrib-textarea { display: block; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; width: 100%; resize: vertical; background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 10px; color: var(--text-primary); margin-top: 6px; }
+  .btn-primary { font: inherit; font-size: 13px; font-weight: 650; padding: 9px 18px; border: none; border-radius: 8px; background: var(--cat-1); color: #fff; cursor: pointer; }
+  .btn-primary:hover { opacity: 0.88; }
+  .attrib-messages { margin-top: 12px; }
+  .attrib-msg { font-size: 12px; padding: 7px 11px; border-radius: 6px; margin-bottom: 6px; line-height: 1.5; }
+  .attrib-msg-error { background: color-mix(in srgb, var(--critical) 15%, transparent); color: var(--critical); border-left: 3px solid var(--critical); }
+  .attrib-msg-warning { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--text-primary); border-left: 3px solid var(--warning); }
+  .attrib-msg-info { color: var(--text-muted); border-left: 3px solid var(--border); padding-left: 8px; }
+  .attrib-card h2 { margin-bottom: 4px; }
+  .attrib-rows { margin: 10px 0; }
+  .attrib-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; }
+  .attrib-row-name { font-size: 12.5px; font-weight: 600; }
+  .attrib-row-vals { text-align: right; font-variant-numeric: tabular-nums; }
+  .attrib-row-beta { font-size: 14px; font-weight: 700; }
+  .attrib-row-t { display: block; font-size: 10.5px; opacity: 0.8; margin-top: 1px; }
+  .attrib-alpha-row { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 2px; margin: 4px 0 10px; border-top: 1px solid var(--div-mid); border-bottom: 1px solid var(--div-mid); }
+  .attrib-narrative { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; margin-top: 4px; }
+  .attrib-rolling { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .attrib-rolling-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .attrib-rolling-legend { display: flex; gap: 14px; font-size: 10.5px; color: var(--text-muted); margin-top: 4px; }
+  .attrib-rolling-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .attrib-rolling-legend i { width: 10px; height: 2.5px; border-radius: 2px; display: inline-block; }
 
   .inline-controls { display: flex; flex-wrap: wrap; gap: 20px 28px; align-items: flex-end; margin-bottom: 14px; }
   .inline-controls .filter-group { margin-bottom: 0; min-width: 170px; }
@@ -233,7 +255,7 @@
     <p class="subtitle" id="subtitleText">Loading…</p>
 
     <div class="sticky-controls inline-controls">
-      <div class="filter-group">
+      <div class="filter-group" id="returnWindowGroup">
         <span class="filter-label">Return window</span>
         <div class="slider-row"><input type="range" class="window-slider" min="1" max="60" step="1"><span class="slider-val window-slider-val"></span></div>
       </div>
@@ -437,6 +459,45 @@
       </div>
     </div>
 
+    <div class="tab-panel" data-tab="attribution">
+      <div class="section">
+        <div class="section-head">
+          <h2 id="attribHead">Bring your own return series</h2>
+          <p class="section-desc collapsible" id="attribDesc">Paste or upload a date-stamped NAV or return series for any portfolio or fund. This runs the same full-sample regression used for the sectors above against both factor models: the four NIFTY market-neutral factors plus market, and the five Fama French style factors plus Mkt-Rf (regressed against your series' excess return over the risk free rate). HAC standard errors with 4 lags, same convention as everywhere else in this dashboard. Nothing you paste or upload leaves your browser -- the regression runs entirely client-side.<br><br><strong>Sanity-checking with a known index?</strong> The NIFTY model's factors are <em>market-neutral</em> (each one's raw index return with its Market beta already stripped out via regression), and Market is a separate regressor alongside them. A raw single-factor NAV -- e.g. the NIFTY Momentum index itself -- is <em>not</em> market-neutral, so it will load on both that factor (~1.0) <em>and</em> Market (also often close to 1.0), with the constant absorbing whatever excess return the factor earned over a 1x market exposure historically. That is the correct decomposition, not an error -- "100% on the one factor, 0 on everything else" only happens if you feed in an already market-neutral series.</p>
+        </div>
+        <div class="card">
+          <div class="filter-group" style="max-width:640px;">
+            <span class="filter-label">Paste "date,value" rows (comma or tab separated) -- or upload a CSV</span>
+            <textarea id="attribInput" class="attrib-textarea" rows="8" spellcheck="false" placeholder="2015-04-30,100.00&#10;2015-05-31,101.85&#10;2015-06-30,99.40&#10;..."></textarea>
+            <input type="file" id="attribFile" accept=".csv,.txt" style="margin-top:8px;">
+          </div>
+          <div class="inline-controls" style="margin-top:14px;">
+            <div class="filter-group">
+              <span class="filter-label">Value type</span>
+              <div class="seg-inline" id="attribValueTypeSeg"></div>
+            </div>
+            <div class="filter-group" id="attribScaleGroup">
+              <span class="filter-label">Return scale</span>
+              <div class="seg-inline" id="attribScaleSeg"></div>
+            </div>
+            <div class="filter-group">
+              <span class="filter-label">Frequency</span>
+              <div class="seg-inline" id="attribFreqSeg"></div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary" id="attribRunBtn" style="margin-top:14px;">Run attribution</button>
+          <div id="attribMessages" class="attrib-messages"></div>
+        </div>
+      </div>
+      <div class="section" id="attribResultsSection" style="display:none;">
+        <div class="section-head">
+          <h2>Attribution results</h2>
+          <p class="section-desc" id="attribResultsNote"></p>
+        </div>
+        <div class="two-col" id="attribCards"></div>
+      </div>
+    </div>
+
     <button type="button" class="footer-toggle" id="footerToggle">▸ Methodology &amp; definitions</button>
     <p class="footer-note collapsible" id="footerNote"></p>
   </main>
@@ -579,15 +640,16 @@
   }
   function rollingForSpec(spec, sector, lookback) {
     const n = spec.dates.length;
-    const out = { dates: [], r2: [], adjR2: [], betas: {} };
-    spec.factorNames.forEach(f => out.betas[f] = []);
+    const names = [...spec.factorNames, spec.marketName];
+    const out = { dates: [], r2: [], adjR2: [], betas: {}, ts: {} };
+    names.forEach(nm => { out.betas[nm] = []; out.ts[nm] = []; });
     for (let end = lookback; end <= n; end++) {
       const fit = regressWindow(spec, sector, end, lookback);
       if (!fit) continue;
       out.dates.push(spec.dates[end - 1]);
       out.r2.push(fit.r2);
       out.adjR2.push(fit.adjR2);
-      spec.factorNames.forEach(f => out.betas[f].push(fit[f].beta));
+      names.forEach(nm => { out.betas[nm].push(fit[nm].beta); out.ts[nm].push(fit[nm].t); });
     }
     return out;
   }
@@ -992,6 +1054,7 @@
     { id: 'factorExposure', label: 'Factor exposure' },
     { id: 'sectorPerf', label: 'Sector performance' },
     { id: 'deepDive', label: 'Sector deep dive' },
+    { id: 'attribution', label: 'Attribution' },
   ];
   let currentTab = 'overview';
   const tabNav = document.getElementById('tabNav');
@@ -2168,10 +2231,388 @@
     renderLeadershipStrip('sectorLeadershipChart', 'sectorLeadershipLegend', leadership, SECTOR_ORDER, sectorColor, (s) => s);
   }
 
+  // ================= Attribution: bring-your-own return series =================
+  // Reuses the exact same regression engine (ols/hacSE/computeVIFs/regressWindow) that
+  // powers the sector factor-loadings table above -- the "spec" abstraction (niftySpec/
+  // ffSpec/getSourceSpec) exists precisely so a third arbitrary series can be regressed
+  // the same way, without touching any of the OLS/HAC/VIF math itself. This whole feature
+  // is decoupled from the reactive render() pipeline -- it only runs when the user clicks
+  // "Run attribution", not on every slider tick.
+
+  function parseAttribDate(s) {
+    let m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+    if (m) return m[1] + '-' + String(+m[2]).padStart(2, '0') + '-' + String(+m[3]).padStart(2, '0');
+    m = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+    if (m) return m[3] + '-' + String(+m[2]).padStart(2, '0') + '-' + String(+m[1]).padStart(2, '0'); // DD-MM-YYYY
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+    return null;
+  }
+  function parseAttribInput(text) {
+    const lines = text.split(/\r?\n/);
+    const rows = [], badLines = [];
+    lines.forEach((raw, i) => {
+      const line = raw.trim();
+      if (!line) return;
+      const parts = line.split(/[,\t]/).map(s => s.trim()).filter(s => s !== '');
+      if (parts.length < 2) { if (rows.length) badLines.push(i + 1); return; }
+      const dateStr = parseAttribDate(parts[0]);
+      const val = parseFloat(parts[1].replace(/[,%₹$\s]/g, ''));
+      if (dateStr === null || !isFinite(val)) {
+        if (i === 0 && rows.length === 0) return; // most likely a header row -- ignore silently
+        badLines.push(i + 1);
+        return;
+      }
+      rows.push({ date: dateStr, value: val });
+    });
+    return { rows, badLines };
+  }
+  function cleanAttribRows(rows) {
+    const byDate = new Map();
+    let dupCount = 0;
+    rows.forEach(r => { if (byDate.has(r.date)) dupCount++; byDate.set(r.date, r.value); }); // last write wins
+    const dates = Array.from(byDate.keys()).sort();
+    const values = dates.map(d => byDate.get(d));
+    return { dates, values, dupCount };
+  }
+  function detectAttribFrequency(dates) {
+    if (dates.length < 3) return 'monthly';
+    const gaps = [];
+    for (let i = 1; i < dates.length; i++) gaps.push((new Date(dates[i]) - new Date(dates[i - 1])) / 86400000);
+    gaps.sort((a, b) => a - b);
+    return gaps[Math.floor(gaps.length / 2)] <= 10 ? 'daily' : 'monthly';
+  }
+  // Converts raw (date, value) rows into a { 'YYYY-MM': percentReturn } map, honoring the
+  // declared value type (NAV level vs period return), frequency, and return scale.
+  function buildMonthlyReturns(dates, values, valueType, freq, scale) {
+    const monthKey = d => d.slice(0, 7);
+    const monthly = {};
+    if (freq === 'monthly') {
+      const byMonth = new Map();
+      dates.forEach((d, i) => byMonth.set(monthKey(d), values[i]));
+      const months = Array.from(byMonth.keys()).sort();
+      if (valueType === 'nav') {
+        for (let i = 1; i < months.length; i++) {
+          const prev = byMonth.get(months[i - 1]), cur = byMonth.get(months[i]);
+          if (prev > 0) monthly[months[i]] = (cur / prev - 1) * 100;
+        }
+      } else {
+        months.forEach(m => { monthly[m] = scale === 'decimal' ? byMonth.get(m) * 100 : byMonth.get(m); });
+      }
+    } else {
+      const byMonth = new Map();
+      dates.forEach((d, i) => { const mk = monthKey(d); if (!byMonth.has(mk)) byMonth.set(mk, []); byMonth.get(mk).push(values[i]); });
+      const months = Array.from(byMonth.keys()).sort();
+      if (valueType === 'nav') {
+        const monthEnd = months.map(m => { const arr = byMonth.get(m); return arr[arr.length - 1]; });
+        for (let i = 1; i < months.length; i++) { if (monthEnd[i - 1] > 0) monthly[months[i]] = (monthEnd[i] / monthEnd[i - 1] - 1) * 100; }
+      } else {
+        months.forEach(m => {
+          let growth = 1;
+          byMonth.get(m).forEach(v => { growth *= (1 + (scale === 'decimal' ? v : v / 100)); });
+          monthly[m] = (growth - 1) * 100;
+        });
+      }
+    }
+    return monthly;
+  }
+  function buildUserSpec(monthly, source) {
+    const base = source === 'nifty' ? niftySpec() : ffSpec();
+    const overlapDates = base.dates.filter(d => monthly[d] !== undefined && isFinite(monthly[d]));
+    const idx = overlapDates.map(d => base.dates.indexOf(d));
+    const yArr = overlapDates.map((d, k) => {
+      const r = monthly[d];
+      return source === 'nifty' ? r : (r - DATA.ff.series.rf[idx[k]]);
+    });
+    return {
+      dates: overlapDates, y: () => yArr,
+      factorNames: base.factorNames, factorSeries: (f) => idx.map(i => base.factorSeries(f)[i]),
+      marketSeries: idx.map(i => base.marketSeries[i]), marketName: base.marketName,
+    };
+  }
+  function runAttributionModel(monthly, source, lookback) {
+    const spec = buildUserSpec(monthly, source);
+    const k = 1 + spec.factorNames.length + 1;
+    const minN = k + 3;
+    const modelName = source === 'nifty' ? 'NIFTY' : 'Fama French';
+    if (spec.dates.length < minN) {
+      return { error: 'Only ' + spec.dates.length + ' month(s) overlap with the ' + modelName + ' sample -- need at least ' + minN + ' to run this regression.', spec };
+    }
+    const window = Math.min(lookback, spec.dates.length);
+    if (window < minN) {
+      return { error: 'Regression lookback is set to ' + window + ' month(s), below the ' + minN + ' needed to run the ' + modelName + ' regression -- widen the Regression Lookback control above.', spec };
+    }
+    return { fit: regressWindow(spec, 'user', spec.dates.length, window), spec };
+  }
+  function buildAttribNarrative(fit, factorNames, marketName, alphaAnn) {
+    const names = factorNames.concat([marketName]);
+    const sig = names.filter(nm => Math.abs(fit[nm].t) >= 2);
+    const pos = sig.filter(nm => fit[nm].beta > 0), neg = sig.filter(nm => fit[nm].beta < 0);
+    let s = '';
+    if (pos.length) s += 'Significant positive exposure to ' + pos.map(nm => factorDisplayName(nm) + ' (β=' + fit[nm].beta.toFixed(2) + ')').join(', ') + '. ';
+    if (neg.length) s += 'Significant negative exposure to ' + neg.map(nm => factorDisplayName(nm) + ' (β=' + fit[nm].beta.toFixed(2) + ')').join(', ') + '. ';
+    if (!sig.length) s += "No factor loading is statistically significant at this sample size (|t|<2) -- read the betas below as directional only. ";
+    s += 'Alpha after removing these exposures is ' + fmtSigned(alphaAnn, 1) + ' annualized' + (Math.abs(fit.const.t) >= 2 ? ', and it is statistically significant.' : ', though it is not statistically significant either.');
+    if (fit.r2 >= 0.97) {
+      const marketBeta = fit[marketName].beta;
+      const bigFactors = factorNames.filter(nm => Math.abs(fit[nm].beta) >= 0.5);
+      if (Math.abs(marketBeta) >= 0.5 && bigFactors.length) {
+        s += ' Note: R² is near-perfect (' + fit.r2.toFixed(2) + ') with large loadings on both ' + marketName + ' (β=' + fmtNum(marketBeta, 2) + ') and ' + bigFactors.map(nm => factorDisplayName(nm) + ' (β=' + fmtNum(fit[nm].beta, 2) + ')').join(', ') + ' -- this usually means your series is close to a linear combination of these regressors, e.g. a raw single-factor or single-sector index rather than a diversified portfolio.'
+          + (marketName === 'Market' ? ' The NIFTY factors here are market-neutral (orthogonalized against Market), so a raw factor index will show real Market exposure alongside its factor loading -- that is expected, not an error.' : '');
+      }
+    }
+    return s;
+  }
+  function renderAttribCard(container, modelLabel, result, source) {
+    const card = el('div', 'card attrib-card');
+    card.appendChild(textEl('h2', null, modelLabel));
+    if (result.error) {
+      card.appendChild(textEl('p', 'section-desc', result.error));
+      container.appendChild(card);
+      return;
+    }
+    const { fit, spec } = result;
+    card.appendChild(textEl('p', 'section-desc',
+      'Sample: ' + fit.dates[0] + ' to ' + fit.dates[fit.dates.length - 1] + ' (' + fit.n + ' months'
+      + (fit.n < spec.dates.length ? ' of ' + spec.dates.length + ' overlap available' : ' overlap') + '). '
+      + 'R² ' + fit.r2.toFixed(2) + (fit.adjR2 !== null ? ' · Adj. R² ' + fit.adjR2.toFixed(2) : '') + ' · N=' + fit.n + '.'));
+
+    const rows = el('div', 'attrib-rows');
+    spec.factorNames.concat([spec.marketName]).forEach(nm => {
+      const cell = fit[nm];
+      const row = el('div', 'attrib-row');
+      const bg = divergingColor(cell.beta, 2.0);
+      row.style.background = bg; row.style.color = luminance(bg) > 0.55 ? '#0b0b0b' : '#ffffff';
+      row.style.opacity = Math.abs(cell.t) >= 2 ? '1' : '0.45';
+      row.appendChild(textEl('span', 'attrib-row-name', factorDisplayName(nm)));
+      const valEl = el('span', 'attrib-row-vals');
+      valEl.innerHTML = '<span class="attrib-row-beta">' + fmtNum(cell.beta, 2) + '</span><span class="attrib-row-t">t=' + fmtNum(cell.t, 1) + '</span>';
+      row.appendChild(valEl);
+      rows.appendChild(row);
+    });
+    card.appendChild(rows);
+
+    const alphaAnn = (Math.pow(1 + fit.const.beta / 100, 12) - 1) * 100;
+    const alphaRow = el('div', 'attrib-alpha-row');
+    alphaRow.appendChild(textEl('span', null, 'Alpha (annualized)'));
+    const alphaVal = el('span'); alphaVal.style.cssText = 'font-weight:700;font-size:14px;color:' + returnColor(alphaAnn) + ';';
+    alphaVal.textContent = fmtSigned(alphaAnn, 1);
+    const alphaT = textEl('span', null, ' (t=' + fmtNum(fit.const.t, 1) + ')'); alphaT.style.cssText = 'font-size:11px;opacity:0.7;margin-left:4px;font-weight:600;';
+    alphaVal.appendChild(alphaT);
+    alphaRow.appendChild(alphaVal);
+    card.appendChild(alphaRow);
+
+    const maxVif = Math.max(...fit.vifs);
+    const vifLine = fit.vifNames.map((nm, i) => nm + ' ' + fmtNum(fit.vifs[i], 1)).join(' · ');
+    card.appendChild(textEl('p', 'section-desc', 'Multicollinearity check (VIF): ' + vifLine + '. ' + (maxVif >= 5 ? 'One or more regressors exceed the usual VIF=5 concern threshold.' : 'All clear (<5).')));
+
+    card.appendChild(textEl('p', 'attrib-narrative', buildAttribNarrative(fit, spec.factorNames, spec.marketName, alphaAnn)));
+    renderAttribRollingBeta(card, source, spec, fit);
+    container.appendChild(card);
+  }
+  let attribRollingFactor = {};
+  function renderAttribRollingBeta(card, source, spec, fit) {
+    const names = spec.factorNames.concat([spec.marketName]);
+    if (spec.dates.length < currentLookback + 6) return; // not enough history for a meaningful rolling series
+    const rolled = rollingForSpec(spec, 'user', currentLookback);
+    if (rolled.dates.length < 2) return;
+
+    let selected = attribRollingFactor[source];
+    if (!selected || !names.includes(selected)) {
+      selected = names.reduce((best, nm) => Math.abs(fit[nm].beta) > Math.abs(fit[best].beta) ? nm : best, names[0]);
+    }
+    attribRollingFactor[source] = selected;
+
+    const wrap = el('div', 'attrib-rolling');
+    const head = el('div', 'attrib-rolling-head');
+    head.appendChild(textEl('span', 'filter-label', 'Beta over time (' + currentLookback + 'm rolling)'));
+    const select = document.createElement('select'); select.className = 'dim-select';
+    names.forEach(nm => { const o = document.createElement('option'); o.value = nm; o.textContent = factorDisplayName(nm); select.appendChild(o); });
+    select.value = selected;
+    head.appendChild(select);
+    wrap.appendChild(head);
+    const chartContainer = el('div', null); chartContainer.style.position = 'relative';
+    wrap.appendChild(chartContainer);
+    const legend = el('div', 'attrib-rolling-legend');
+    legend.innerHTML = '<span><i style="background:' + cvar('--good') + '"></i>Significant (|t|≥2)</span><span><i style="background:' + cvar('--text-muted') + '"></i>Not significant</span>';
+    wrap.appendChild(legend);
+    card.appendChild(wrap);
+
+    function drawChart(factorName) {
+      chartContainer.innerHTML = '';
+      const vals = rolled.betas[factorName], ts = rolled.ts[factorName], dates = rolled.dates;
+      const N = vals.length;
+      const W = 520, H = 160, padL = 38, padR = 14, padT = 10, padB = 22;
+      const maxAbs = Math.max(0.3, ...vals.map(Math.abs)) * 1.15;
+      const x = i => padL + (N <= 1 ? 0 : (i / (N - 1)) * (W - padL - padR));
+      const y = v => padT + (1 - (v + maxAbs) / (2 * maxAbs)) * (H - padT - padB);
+      const svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', height: H, preserveAspectRatio: 'none' });
+      [-maxAbs, 0, maxAbs].forEach(gv => {
+        svg.appendChild(svgEl('line', { x1: padL, x2: W - padR, y1: y(gv), y2: y(gv), stroke: gv === 0 ? cvar('--baseline') : cvar('--grid'), 'stroke-width': 1 }));
+        const t = svgEl('text', { x: padL - 6, y: y(gv) + 3, 'text-anchor': 'end', 'font-size': 9.5, fill: cvar('--text-muted') }); t.textContent = gv.toFixed(1); svg.appendChild(t);
+      });
+      const tickEvery = Math.max(1, Math.round(N / 6));
+      for (let i = 0; i < N; i += tickEvery) {
+        const t = svgEl('text', { x: x(i), y: H - 6, 'text-anchor': 'middle', 'font-size': 9, fill: cvar('--text-muted') }); t.textContent = dates[i]; svg.appendChild(t);
+      }
+      const sigColor = cvar('--good'), insigColor = cvar('--text-muted');
+      for (let i = 1; i < N; i++) {
+        const bothSig = Math.abs(ts[i - 1]) >= 2 && Math.abs(ts[i]) >= 2;
+        svg.appendChild(svgEl('path', {
+          d: 'M' + x(i - 1).toFixed(1) + ',' + y(vals[i - 1]).toFixed(1) + ' L' + x(i).toFixed(1) + ',' + y(vals[i]).toFixed(1),
+          fill: 'none', stroke: bothSig ? sigColor : insigColor, 'stroke-width': 2, 'stroke-linecap': 'round', opacity: bothSig ? 1 : 0.55,
+        }));
+      }
+      const dotsGroup = svgEl('g', {});
+      vals.forEach((v, i) => {
+        const sig = Math.abs(ts[i]) >= 2;
+        dotsGroup.appendChild(svgEl('circle', { cx: x(i), cy: y(v), r: 2.3, fill: sig ? sigColor : insigColor, opacity: sig ? 1 : 0.7 }));
+      });
+      svg.appendChild(dotsGroup);
+      const crosshair = svgEl('line', { x1: 0, x2: 0, y1: padT, y2: H - padB, stroke: cvar('--text-muted'), 'stroke-width': 1, opacity: 0 });
+      const hoverDot = svgEl('circle', { r: 4, fill: cvar('--surface-1'), stroke: cvar('--text-primary'), 'stroke-width': 1.5, opacity: 0 });
+      svg.appendChild(crosshair); svg.appendChild(hoverDot);
+      const hit = svgEl('rect', { x: padL, y: padT, width: W - padL - padR, height: H - padT - padB, fill: 'transparent', style: 'cursor:crosshair' });
+      svg.appendChild(hit);
+      chartContainer.appendChild(svg);
+      const tt = ensureTooltip();
+      function onMove(evt) {
+        const rectSvg = svg.getBoundingClientRect();
+        const evX = (evt.touches ? evt.touches[0].clientX : evt.clientX);
+        const relX = evX - rectSvg.left;
+        const frac = Math.max(0, Math.min(1, (relX - (padL * rectSvg.width / W)) / ((W - padL - padR) * rectSvg.width / W)));
+        const idx = Math.round(frac * (N - 1));
+        crosshair.setAttribute('x1', x(idx)); crosshair.setAttribute('x2', x(idx)); crosshair.setAttribute('opacity', 1);
+        hoverDot.setAttribute('cx', x(idx)); hoverDot.setAttribute('cy', y(vals[idx])); hoverDot.setAttribute('opacity', 1);
+        const sig = Math.abs(ts[idx]) >= 2;
+        tt.innerHTML = '<div class="tt-date">' + dates[idx] + '</div>'
+          + '<div class="tt-row"><span class="tt-key" style="background:' + (sig ? sigColor : insigColor) + '"></span>' + factorDisplayName(factorName) + '<span class="tt-val">' + fmtNum(vals[idx], 2) + '</span></div>'
+          + '<div class="tt-row" style="opacity:.75;font-size:10.5px;">t=' + fmtNum(ts[idx], 1) + (sig ? ' · significant' : ' · not significant') + '</div>';
+        tt.style.left = evX + 'px'; tt.style.top = (rectSvg.top + window.scrollY) + 'px'; tt.classList.add('show');
+      }
+      hit.addEventListener('mousemove', onMove);
+      hit.addEventListener('mouseleave', () => { crosshair.setAttribute('opacity', 0); hoverDot.setAttribute('opacity', 0); tt.classList.remove('show'); });
+    }
+    select.addEventListener('change', () => { attribRollingFactor[source] = select.value; drawChart(select.value); });
+    drawChart(selected);
+  }
+  function renderAttribMessages(container, messages) {
+    container.innerHTML = '';
+    messages.forEach(m => container.appendChild(textEl('div', 'attrib-msg attrib-msg-' + m.type, m.text)));
+  }
+  function runAttribution() {
+    const messages = [];
+    const text = document.getElementById('attribInput').value;
+    const resultsSection = document.getElementById('attribResultsSection');
+    const msgsEl = document.getElementById('attribMessages');
+    resultsSection.style.display = 'none';
+
+    if (!text.trim()) { renderAttribMessages(msgsEl, [{ type: 'error', text: 'Paste or upload a date,value series first.' }]); return; }
+
+    const { rows, badLines } = parseAttribInput(text);
+    if (!rows.length) { renderAttribMessages(msgsEl, [{ type: 'error', text: 'Could not parse any valid rows. Expected one "date,value" pair per line.' }]); return; }
+    if (badLines.length) messages.push({ type: 'warning', text: badLines.length + ' line(s) could not be parsed and were skipped: line ' + badLines.slice(0, 10).join(', ') + (badLines.length > 10 ? ', ...' : '') + '.' });
+
+    const { dates, values, dupCount } = cleanAttribRows(rows);
+    if (dupCount) messages.push({ type: 'warning', text: dupCount + ' duplicate date(s) found -- kept the last value for each.' });
+
+    const valueType = attribValueType;
+    let freq = attribFreq;
+    const detected = detectAttribFrequency(dates);
+    if (freq === 'auto') { freq = detected; messages.push({ type: 'info', text: 'Detected frequency: ' + detected + ' (from the median gap between rows).' }); }
+    else if (freq !== detected) { messages.push({ type: 'warning', text: 'You selected ' + freq + ', but the row spacing looks more like ' + detected + ' data -- double check the Frequency setting if the results look off.' }); }
+
+    if (valueType === 'return') {
+      const fracOver = values.filter(v => Math.abs(v) > 1.5).length / values.length;
+      if (fracOver > 0.3) messages.push({ type: 'warning', text: 'Many values are larger than 150% -- these look more like NAV levels than period returns. Check the Value type setting.' });
+      const sorted = values.slice().sort((a, b) => Math.abs(a) - Math.abs(b));
+      const med = Math.abs(sorted[Math.floor(sorted.length / 2)]);
+      if (attribScale === 'percent' && med < 0.5) messages.push({ type: 'warning', text: 'Most values are smaller than 0.5 -- these might be decimal fractions (e.g. 0.02 = 2%) rather than percent. Check the Return scale setting.' });
+      if (attribScale === 'decimal' && med > 3) messages.push({ type: 'warning', text: 'Most values are larger than 3 -- these might already be in percent (e.g. 2.0 = 2%) rather than decimal fraction. Check the Return scale setting.' });
+    }
+
+    const monthly = buildMonthlyReturns(dates, values, valueType, freq, attribScale);
+    const monthsSorted = Object.keys(monthly).sort();
+    if (monthsSorted.length < 6) { messages.push({ type: 'error', text: 'Only ' + monthsSorted.length + ' monthly observation(s) could be derived from this input -- too few to run a regression.' }); renderAttribMessages(msgsEl, messages); lastAttribMonthly = null; return; }
+
+    const outliers = monthsSorted.filter(m => Math.abs(monthly[m]) > 50);
+    if (outliers.length) messages.push({ type: 'warning', text: 'Unusually large monthly move(s) (>50%) at: ' + outliers.slice(0, 8).join(', ') + (outliers.length > 8 ? ', ...' : '') + ' -- verify these are correct.' });
+
+    messages.push({ type: 'info', text: 'Parsed ' + monthsSorted.length + ' monthly return(s) from ' + monthsSorted[0] + ' to ' + monthsSorted[monthsSorted.length - 1] + '.' });
+    renderAttribMessages(msgsEl, messages);
+
+    lastAttribMonthly = monthly;
+    refreshAttribResults();
+  }
+  let lastAttribMonthly = null;
+  function refreshAttribResults() {
+    if (!lastAttribMonthly) return;
+    const resultsSection = document.getElementById('attribResultsSection');
+    const niftyResult = runAttributionModel(lastAttribMonthly, 'nifty', currentLookback);
+    const ffResult = runAttributionModel(lastAttribMonthly, 'ff', currentLookback);
+    const noteEl = document.getElementById('attribResultsNote');
+    if (noteEl) noteEl.textContent = 'Regression lookback: trailing ' + currentLookback + ' month(s) of your series -- drag the Regression Lookback control above to change it.';
+
+    if (!niftyResult.fit && !ffResult.fit) {
+      resultsSection.style.display = 'none';
+      const msgsEl = document.getElementById('attribMessages');
+      const extra = [];
+      if (niftyResult.error) extra.push({ type: 'warning', text: 'NIFTY model: ' + niftyResult.error });
+      if (ffResult.error) extra.push({ type: 'warning', text: 'Fama French model: ' + ffResult.error });
+      if (extra.length) msgsEl.querySelectorAll('.attrib-msg-lookback').forEach(e => e.remove());
+      extra.forEach(m => msgsEl.appendChild(textEl('div', 'attrib-msg attrib-msg-' + m.type + ' attrib-msg-lookback', m.text)));
+      return;
+    }
+    document.querySelectorAll('#attribMessages .attrib-msg-lookback').forEach(e => e.remove());
+    const cardsEl = document.getElementById('attribCards'); cardsEl.innerHTML = '';
+    renderAttribCard(cardsEl, 'NIFTY factor model', niftyResult, 'nifty');
+    renderAttribCard(cardsEl, 'Fama French factor model', ffResult, 'ff');
+    resultsSection.style.display = 'block';
+  }
+  let attribValueType = 'nav', attribScale = 'percent', attribFreq = 'auto';
+  function initAttributionTab() {
+    const valueTypeSeg = document.getElementById('attribValueTypeSeg');
+    [{ id: 'nav', label: 'NAV levels' }, { id: 'return', label: 'Period returns' }].forEach(o => {
+      const b = textEl('button', o.id === attribValueType ? 'active' : '', o.label);
+      b.addEventListener('click', () => {
+        attribValueType = o.id;
+        Array.from(valueTypeSeg.children).forEach(btn => btn.classList.toggle('active', btn === b));
+        document.getElementById('attribScaleGroup').style.display = attribValueType === 'return' ? '' : 'none';
+      });
+      valueTypeSeg.appendChild(b);
+    });
+    document.getElementById('attribScaleGroup').style.display = attribValueType === 'return' ? '' : 'none';
+
+    const scaleSeg = document.getElementById('attribScaleSeg');
+    [{ id: 'percent', label: 'Percent (2.0)' }, { id: 'decimal', label: 'Decimal (0.02)' }].forEach(o => {
+      const b = textEl('button', o.id === attribScale ? 'active' : '', o.label);
+      b.addEventListener('click', () => { attribScale = o.id; Array.from(scaleSeg.children).forEach(btn => btn.classList.toggle('active', btn === b)); });
+      scaleSeg.appendChild(b);
+    });
+
+    const freqSeg = document.getElementById('attribFreqSeg');
+    [{ id: 'auto', label: 'Auto-detect' }, { id: 'daily', label: 'Daily' }, { id: 'monthly', label: 'Monthly' }].forEach(o => {
+      const b = textEl('button', o.id === attribFreq ? 'active' : '', o.label);
+      b.addEventListener('click', () => { attribFreq = o.id; Array.from(freqSeg.children).forEach(btn => btn.classList.toggle('active', btn === b)); });
+      freqSeg.appendChild(b);
+    });
+
+    document.getElementById('attribFile').addEventListener('change', (evt) => {
+      const file = evt.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => { document.getElementById('attribInput').value = reader.result; };
+      reader.readAsText(file);
+    });
+
+    document.getElementById('attribRunBtn').addEventListener('click', runAttribution);
+    addInfoToggle(document.getElementById('attribHead'), document.getElementById('attribDesc'));
+  }
+
   function render() {
     syncWindowSliders();
     syncLookbackSegs();
     updateAsOfNote();
+    document.getElementById('returnWindowGroup').style.display = currentTab === 'attribution' ? 'none' : '';
     const latestFits = latestFitAllSectors(currentLookback);
     const factorStats = computeFactorStats(currentSource, currentWindowMonths);
     renderTiles(factorStats);
@@ -2188,8 +2629,10 @@
     renderLoadings(latestFits);
     renderRollingVIFChart();
     renderRollingSection();
+    refreshAttribResults();
     renderFactorRegimeTab();
   }
+  initAttributionTab();
   render();
 })();
 </script>
