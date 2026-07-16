@@ -180,11 +180,12 @@
   .mini-track { position: relative; height: 8px; border-radius: 4px; background: var(--div-mid); }
   .mini-fill { position: absolute; top: 0; height: 8px; border-radius: 4px; }
   .mini-mid { position: absolute; top: -3px; width: 2px; height: 14px; background: var(--baseline); transform: translateX(-1px); }
-  .spark-wrap { height: 34px; }
 
   .chart-card svg { display: block; overflow: visible; }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; }
-  @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } .tiles, .meter-grid { grid-template-columns: repeat(2,1fr); } }
+  .regime-layout { display: grid; grid-template-columns: 1fr 320px; gap: 12px; align-items: start; }
+  .regime-quadrant-side .section-head { margin-bottom: 6px; }
+  @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } .tiles, .meter-grid { grid-template-columns: repeat(2,1fr); } .regime-layout { grid-template-columns: 1fr; } }
 
   .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 12px; color: var(--text-secondary); }
   .legend-item { display: flex; align-items: center; gap: 6px; }
@@ -259,7 +260,7 @@
         <span class="filter-label">Return window</span>
         <div class="slider-row"><input type="range" class="window-slider" min="1" max="60" step="1"><span class="slider-val window-slider-val"></span></div>
       </div>
-      <div class="filter-group">
+      <div class="filter-group" id="lookbackGroup">
         <span class="filter-label">Regression lookback</span>
         <div class="seg-inline lookback-seg"></div>
       </div>
@@ -273,48 +274,41 @@
     <div class="tab-panel" data-tab="factorPerf">
       <div class="section">
         <div class="section-head">
-          <h2 id="crowdingHead">Factor stretch, capture &amp; volatility regime (published index)</h2>
-          <p class="section-desc collapsible" id="crowdingDesc">Loading…</p>
-          <p class="section-desc" id="regimeWarning" style="display:none;"></p>
+          <h2 id="factorSummaryHead">Factor performance summary</h2>
+          <p class="section-desc collapsible" id="factorSummaryDesc">Loading…</p>
         </div>
-        <div class="meter-grid" id="meterGrid"></div>
-      </div>
-
-      <div class="section">
-        <div class="section-head">
-          <h2 id="regimeQuadrantHead">Regime quadrant: stretch vs. volatility</h2>
-          <p class="section-desc collapsible" id="regimeQuadrantDesc"></p>
-        </div>
-        <div class="card chart-card">
-          <div id="regimeQuadrantChart" style="position:relative;"></div>
-          <div class="legend" id="regimeQuadrantLegend"></div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-head">
-          <h2 id="rawOrthoHead">Factor performance, raw vs market neutral factor</h2>
-          <p class="section-desc collapsible" id="rawOrthoDesc"><strong>Raw</strong> is the published factor index's actual return, computed from the exact calendar day the selected window ago to today, matching the live index. <strong>Market Neutral Factor</strong> strips out the factor's market beta (a monthly regression residual against NIFTY 500, so it is compounded from month end returns rather than exact calendar days).</p>
-        </div>
-        <div class="two-col">
-          <div class="card chart-card">
-            <div id="factorPairedBars"></div>
-          </div>
-          <div class="card chart-card">
-            <div id="factorLine" style="position:relative;"></div>
-            <div class="legend" id="factorLineLegend"></div>
-          </div>
-        </div>
-        <div class="card" style="margin-top:12px;">
-          <h2 id="factorSummaryHead" style="margin-bottom:8px;">Factor performance summary</h2>
-          <p class="section-desc collapsible" id="factorSummaryDesc" style="margin-bottom:10px;">Loading…</p>
+        <div class="card">
           <div style="overflow-x:auto;">
             <table class="heat" id="factorSummaryTable"></table>
           </div>
         </div>
-        <div class="card chart-card" style="margin-top:12px;">
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h2 id="crowdingHead">Factor stretch, capture &amp; volatility regime (published index)</h2>
+          <p class="section-desc collapsible" id="crowdingDesc">Loading…</p>
+          <p class="section-desc" id="regimeWarning" style="display:none;"></p>
+        </div>
+        <div class="regime-layout">
+          <div class="meter-grid" id="meterGrid"></div>
+          <div class="card chart-card regime-quadrant-side">
+            <div class="section-head">
+              <h2 id="regimeQuadrantHead" style="font-size:13px;">Regime quadrant</h2>
+              <p class="section-desc collapsible" id="regimeQuadrantDesc"></p>
+            </div>
+            <div id="regimeQuadrantChart" style="position:relative;"></div>
+            <div class="legend" id="regimeQuadrantLegend"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
           <h2 id="factorDrawdownHead" style="margin-bottom:2px;">Factor drawdown</h2>
           <p class="section-desc collapsible" id="factorDrawdownChartDesc" style="margin-bottom:8px;">Loading…</p>
+        </div>
+        <div class="card chart-card">
           <div id="factorDrawdownChart" style="position:relative;"></div>
           <div class="legend" id="factorDrawdownLegend"></div>
         </div>
@@ -326,6 +320,23 @@
           <p class="section-desc collapsible" id="corrDesc">Loading…</p>
         </div>
         <div id="corrCards" class="two-col"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h2 id="leadershipHead">Factor leadership timeline</h2>
+          <div class="inline-controls" style="margin-top:10px;">
+            <div class="filter-group">
+              <span class="filter-label">Rolling window</span>
+              <div class="seg-inline" id="regimeWindowSeg"></div>
+            </div>
+          </div>
+          <p class="section-desc collapsible" id="leadershipDesc">Loading…</p>
+        </div>
+        <div class="card chart-card">
+          <div id="factorLeadershipChart" style="position:relative;"></div>
+          <div class="legend" id="factorLeadershipLegend"></div>
+        </div>
       </div>
     </div>
 
@@ -354,6 +365,34 @@
           <div class="legend" id="sectorLeadershipLegend"></div>
         </div>
       </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h2 id="deepDiveHead">Sector deep dive</h2>
+          <div class="inline-controls" style="margin-top:10px;">
+            <div class="filter-group">
+              <span class="filter-label">Sector</span>
+              <select class="dim-select" id="sectorSelect"></select>
+            </div>
+            <div class="filter-group">
+              <span class="filter-label">Regression lookback</span>
+              <div class="seg-inline lookback-seg"></div>
+            </div>
+          </div>
+          <p class="section-desc collapsible" id="deepDiveDesc">How the picked sector's factor tilts have drifted over time, and how well the model explains it over time.</p>
+        </div>
+        <div class="card">
+          <div class="stat-row" id="rollingStats"></div>
+          <h2 id="rollingBetaHead" style="margin-bottom:8px;">Rolling factor betas</h2>
+          <p class="section-desc collapsible" id="rollingBetaDesc" style="margin-bottom:10px;">These loadings are not standardized: a rising beta can mean a genuinely stronger relationship, or simply that the factor got more volatile over the window (variance in the regressor inflates its coefficient even if the true relationship is unchanged). The trailing volatility row below shows the current window's regressor volatility so you can tell them apart.</p>
+          <div class="stat-row" id="rollingVolStats"></div>
+          <div id="rollingBetaChart" style="position:relative;"></div>
+          <div class="legend" id="rollingBetaLegend"></div>
+
+          <h2 style="margin:22px 0 8px;">Rolling model fit (R²)</h2>
+          <div id="rollingR2Chart" style="position:relative;"></div>
+        </div>
+      </div>
     </div>
 
     <div class="tab-panel" data-tab="factorExposure">
@@ -373,88 +412,6 @@
           <p class="section-desc collapsible" id="vifExplainerDesc" style="margin-bottom:10px;">VIF depends only on the regressor set, not on any one sector, so this is one chart for the whole model. A single latest-window VIF can look clean even if two regressors were highly collinear in an earlier regime; this tracks VIF through time so a past danger zone is not hidden. The dashed line marks the usual VIF = 5 concern threshold.</p>
           <div id="rollingVifChart" style="position:relative;"></div>
           <div class="legend" id="rollingVifLegend"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-panel" data-tab="deepDive">
-      <div class="section">
-        <div class="section-head">
-          <h2 id="deepDiveHead">Sector deep dive</h2>
-          <div class="inline-controls" style="margin-top:10px;">
-            <div class="filter-group">
-              <span class="filter-label">Sector</span>
-              <select class="dim-select" id="sectorSelect"></select>
-            </div>
-          </div>
-          <p class="section-desc collapsible" id="deepDiveDesc">How the picked sector's factor tilts have drifted over time, and how well the model explains it over time.</p>
-        </div>
-        <div class="card">
-          <div class="stat-row" id="rollingStats"></div>
-          <h2 id="rollingBetaHead" style="margin-bottom:8px;">Rolling factor betas</h2>
-          <p class="section-desc collapsible" id="rollingBetaDesc" style="margin-bottom:10px;">These loadings are not standardized: a rising beta can mean a genuinely stronger relationship, or simply that the factor got more volatile over the window (variance in the regressor inflates its coefficient even if the true relationship is unchanged). The trailing volatility row below shows the current window's regressor volatility so you can tell them apart.</p>
-          <div class="stat-row" id="rollingVolStats"></div>
-          <div id="rollingBetaChart" style="position:relative;"></div>
-          <div class="legend" id="rollingBetaLegend"></div>
-
-          <h2 style="margin:22px 0 8px;">Rolling model fit (R²)</h2>
-          <div id="rollingR2Chart" style="position:relative;"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-panel" data-tab="factorRegime">
-      <div class="section">
-        <div class="section-head">
-          <h2 id="regimePerfHead">Factor performance summary</h2>
-          <p class="section-desc collapsible" id="regimePerfDesc">Trailing return across standard horizons, so you can see whether a factor's edge is a recent blip or has held up for years. 1Y and up are annualized (CAGR). Current DD is how far below its own all-time high the factor sits right now.</p>
-        </div>
-        <div class="card">
-          <div style="overflow-x:auto;">
-            <table class="heat" id="regimePerfTable"></table>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-head">
-          <h2 id="regimeExcessHead">Rolling relative performance</h2>
-          <div class="inline-controls" style="margin-top:10px;">
-            <div class="filter-group">
-              <span class="filter-label">Rolling window</span>
-              <div class="seg-inline" id="regimeWindowSeg"></div>
-            </div>
-            <div class="filter-group">
-              <span class="filter-label">Metric</span>
-              <div class="seg-inline" id="regimeMetricSeg"></div>
-            </div>
-          </div>
-          <p class="section-desc collapsible" id="regimeExcessDesc">Loading…</p>
-        </div>
-        <div class="card chart-card">
-          <div id="regimeExcessChart" style="position:relative;"></div>
-          <div class="legend" id="regimeExcessLegend"></div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-head">
-          <h2 id="leadershipHead">Factor leadership timeline</h2>
-          <p class="section-desc collapsible" id="leadershipDesc">Loading…</p>
-        </div>
-        <div class="card chart-card">
-          <div id="factorLeadershipChart" style="position:relative;"></div>
-          <div class="legend" id="factorLeadershipLegend"></div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-head">
-          <h2 id="regimeCorrHead">Rolling factor correlation</h2>
-          <p class="section-desc collapsible" id="regimeCorrDesc">Average pairwise correlation among the factors, rolling 12 months,  rising means your factor diversifiers are converging.</p>
-        </div>
-        <div class="card chart-card">
-          <div id="regimeCorrChart" style="position:relative;"></div>
         </div>
       </div>
     </div>
@@ -526,7 +483,6 @@
   let currentSector = SECTOR_ORDER[0];
   let currentSource = 'nifty';
   let regimeWindow = 12;
-  let regimeMetric = 'excess';
   function activeFactorOrder() { return currentSource === 'nifty' ? FACTOR_ORDER : FF_FACTOR_ORDER; }
   function marketRegressorName() { return currentSource === 'nifty' ? 'Market' : 'MktRF'; }
 
@@ -701,12 +657,6 @@
   // Return-type values (not betas/tilts/correlations): financial convention, gains green, losses red.
   function returnColor(v) { return (v || 0) >= 0 ? cvar('--good') : cvar('--critical'); }
   function luminance(rgbStr) { const m=rgbStr.match(/\d+/g).map(Number); const [r,g,b]=m.map(v=>v/255); return 0.2126*r+0.7152*g+0.0722*b; }
-  function trailingReturn(seriesArr, dates, months) {
-    const tail = seriesArr.slice(-months);
-    if (!tail.length) return null;
-    const growth = tail.reduce((acc, v) => acc * (1 + v/100), 1);
-    return Math.round((growth - 1) * 10000) / 100;
-  }
   // Exact calendar-day trailing return off daily price levels (DATA.dailyPrices), rather than
   // compounding month-end-bucketed returns. Matches "price today vs. price N months ago on the
   // actual index" the way anyone would sanity-check it against a live quote -- a monthly-bucketed
@@ -730,11 +680,6 @@
     while (startIdx >= 0 && dailyValues[startIdx] === null) startIdx--;
     if (startIdx < 0) return null;
     return { startIdx, lastIdx };
-  }
-  function trailingReturnDaily(dailyDates, dailyValues, months) {
-    const b = dailyWindowBounds(dailyDates, dailyValues, months);
-    if (!b) return null;
-    return Math.round((dailyValues[b.lastIdx] / dailyValues[b.startIdx] - 1) * 10000) / 100;
   }
   // The full underwater path (date + running peak-to-trough decline at each point), off exact
   // daily price levels -- shown as a chart rather than a single number, so the actual dates of a
@@ -798,8 +743,9 @@
     const variance = rets.reduce((s, r) => s + (r - mean) * (r - mean), 0) / Math.max(1, rets.length - 1);
     return Math.sqrt(variance) * Math.sqrt(252) * 100;
   }
-  // Annualized (CAGR) version of trailingReturnDaily -- only meaningful for periods of a year or
-  // more; sub-year periods use the plain cumulative trailingReturnDaily instead.
+  // Annualized (CAGR) trailing return off exact daily price levels -- every displayed return in this
+  // dashboard is annualized, including sub-year windows, so a 1-month return is shown at its
+  // annualized run-rate rather than as a raw cumulative percentage.
   function trailingCAGRDaily(dailyDates, dailyValues, months) {
     const b = dailyWindowBounds(dailyDates, dailyValues, months);
     if (!b) return null;
@@ -843,8 +789,7 @@
     }
     return out;
   }
-  function computeFactorStats(source, lookbackMonths, historyMonths) {
-    historyMonths = historyMonths === undefined ? 36 : historyMonths;
+  function computeFactorStats(source, lookbackMonths) {
     const factors = source === 'nifty' ? FACTOR_ORDER : FF_FACTOR_ORDER;
     const seriesFor = source === 'nifty' ? (f) => DATA.series.factorsRaw[f] : (f) => DATA.ff.series.factors[f];
     const marketSeries = source === 'nifty' ? DATA.series.market : DATA.ff.series.mktrf;
@@ -861,7 +806,6 @@
       const std = Math.sqrt(variance);
       const zSeries = summed.map(v => (v === null || std === 0) ? null : Math.round(((v - mean) / std) * 100) / 100);
       const validZIdx = []; zSeries.forEach((v, i) => { if (v !== null) validZIdx.push(i); });
-      const zTail = validZIdx.slice(-historyMonths);
       const latestZIdx = validZIdx.length ? validZIdx[validZIdx.length - 1] : null;
 
       // capture ratio: % of months over the trailing lookback window the factor beat the market.
@@ -877,12 +821,18 @@
       const fullVol = annualizedVol(series, series.length);
       const volRatio = (lookbackVol !== null && fullVol) ? Math.round((lookbackVol / fullVol) * 100) / 100 : null;
 
+      // Displayed return: exact-calendar-day CAGR off daily price levels for NIFTY factors (same
+      // basis as the summary table/tiles/leaderboard) -- monthly-bucketed series only as a fallback
+      // for the Fama French source, which has no daily prices to fall back on.
+      const latestReturn = source === 'nifty'
+        ? trailingCAGRDaily(DATA.dailyPrices.dates, DATA.dailyPrices.factors[f], lookbackMonths)
+        : trailingCAGRFromReturns(series, lookbackMonths);
+
       out[f] = {
         z: latestZIdx !== null ? zSeries[latestZIdx] : null,
-        zHistory: zTail.map(i => zSeries[i]),
         capture, captureWins: wins, captureTotal: total,
         volRatio, lookbackVol, fullVol,
-        latestReturn: trailingReturn(series, null, lookbackMonths),
+        latestReturn,
       };
     });
     return out;
@@ -905,51 +855,7 @@
     return out;
   }
 
-  // ---------------- factor regime: rolling excess return/Sharpe, leadership rotation, rolling avg correlation ----------------
-  // Rolling trailing-window excess CAGR of series A over series B (e.g. factor minus Nifty),
-  // recomputed at every month so a persistent edge can be told apart from an episodic one.
-  function rollingExcessCAGR(dates, returnsA, returnsB, window) {
-    const outDates = [], values = [];
-    for (let e = window; e <= returnsA.length; e++) {
-      const gA = returnsA.slice(e - window, e).reduce((g, r) => g * (1 + r / 100), 1);
-      const gB = returnsB.slice(e - window, e).reduce((g, r) => g * (1 + r / 100), 1);
-      const cagrA = (Math.pow(gA, 12 / window) - 1) * 100;
-      const cagrB = (Math.pow(gB, 12 / window) - 1) * 100;
-      outDates.push(dates[e - 1]);
-      values.push(Math.round((cagrA - cagrB) * 100) / 100);
-    }
-    return { dates: outDates, values };
-  }
-  // Rolling Sharpe: annualized mean return / annualized vol, no risk-free subtraction -- these are
-  // self-financing long-short-style factor portfolios.
-  function rollingSharpe(dates, returnsArr, window) {
-    const outDates = [], values = [];
-    for (let e = window; e <= returnsArr.length; e++) {
-      const tail = returnsArr.slice(e - window, e);
-      const mean = tail.reduce((a, b) => a + b, 0) / tail.length;
-      const variance = tail.reduce((s, v) => s + (v - mean) * (v - mean), 0) / Math.max(1, tail.length - 1);
-      const annVol = Math.sqrt(variance) * Math.sqrt(12);
-      outDates.push(dates[e - 1]);
-      values.push(annVol > 0 ? Math.round((mean * 12 / annVol) * 100) / 100 : null);
-    }
-    return { dates: outDates, values };
-  }
-  // Rolling average of all pairwise correlations among a set of series -- one clean number for
-  // "are my diversifiers disappearing", instead of an unreadable pile of pairwise lines.
-  function rollingAvgCorrelation(dates, seriesMap, order, window) {
-    const n = seriesMap[order[0]].length;
-    const outDates = [], values = [];
-    for (let e = window; e <= n; e++) {
-      const sliced = {}; order.forEach(k => sliced[k] = seriesMap[k].slice(e - window, e));
-      let sum = 0, count = 0;
-      for (let i = 0; i < order.length; i++) {
-        for (let j = i + 1; j < order.length; j++) { sum += pearson(sliced[order[i]], sliced[order[j]]); count++; }
-      }
-      outDates.push(dates[e - 1]);
-      values.push(count ? Math.round((sum / count) * 1000) / 1000 : null);
-    }
-    return { dates: outDates, values };
-  }
+  // ---------------- factor leadership rotation ----------------
   // Which series had the best trailing-window compounded return as of each month end -- the
   // "leader" for that month. Recomputed at every point so rotation shows up directly as color changes.
   function computeLeadership(dates, returnSeriesMap, order, window) {
@@ -972,19 +878,6 @@
 
   let tooltipEl = null;
   function ensureTooltip() { if (!tooltipEl) { tooltipEl = el('div', 'tooltip'); root.appendChild(tooltipEl); } return tooltipEl; }
-  function attachTooltip(hitEl, relativeContainer, contentFn) {
-    const tt = ensureTooltip();
-    function show(evt) {
-      tt.innerHTML = contentFn();
-      const rect = relativeContainer.getBoundingClientRect();
-      const evX = (evt.touches ? evt.touches[0].clientX : evt.clientX);
-      tt.style.left = evX + 'px'; tt.style.top = (rect.top + window.scrollY) + 'px';
-      tt.classList.add('show');
-    }
-    hitEl.addEventListener('mousemove', show); hitEl.addEventListener('mouseenter', show);
-    hitEl.addEventListener('mouseleave', () => tt.classList.remove('show'));
-    hitEl.addEventListener('focus', show); hitEl.addEventListener('blur', () => tt.classList.remove('show'));
-  }
 
   // ---------------- collapsed-by-default explainer text, revealed via a small info toggle ----------------
   function addInfoToggle(headEl, descEls) {
@@ -1031,7 +924,6 @@
   });
   addInfoToggle(document.getElementById('crowdingHead'), document.getElementById('crowdingDesc'));
   addInfoToggle(document.getElementById('regimeQuadrantHead'), document.getElementById('regimeQuadrantDesc'));
-  addInfoToggle(document.getElementById('rawOrthoHead'), document.getElementById('rawOrthoDesc'));
   addInfoToggle(document.getElementById('corrHead'), document.getElementById('corrDesc'));
   addInfoToggle(document.getElementById('loadingsHead'), [document.getElementById('loadingsDesc'), document.getElementById('vifExplainerDesc')]);
   addInfoToggle(document.getElementById('factorSummaryHead'), document.getElementById('factorSummaryDesc'));
@@ -1041,19 +933,14 @@
   addInfoToggle(document.getElementById('sectorLeadershipHead'), document.getElementById('sectorLeadershipDesc'));
   addInfoToggle(document.getElementById('deepDiveHead'), document.getElementById('deepDiveDesc'));
   addInfoToggle(document.getElementById('rollingBetaHead'), document.getElementById('rollingBetaDesc'));
-  addInfoToggle(document.getElementById('regimePerfHead'), document.getElementById('regimePerfDesc'));
-  addInfoToggle(document.getElementById('regimeExcessHead'), document.getElementById('regimeExcessDesc'));
   addInfoToggle(document.getElementById('leadershipHead'), document.getElementById('leadershipDesc'));
-  addInfoToggle(document.getElementById('regimeCorrHead'), document.getElementById('regimeCorrDesc'));
 
   // ---------------- tabs ----------------
   const TABS = [
     { id: 'overview', label: 'Overview' },
     { id: 'factorPerf', label: 'Factor performance' },
-    { id: 'factorRegime', label: 'Factor regime' },
-    { id: 'factorExposure', label: 'Factor exposure' },
+    { id: 'factorExposure', label: 'Sector factor exposure' },
     { id: 'sectorPerf', label: 'Sector performance' },
-    { id: 'deepDive', label: 'Sector deep dive' },
     { id: 'attribution', label: 'Attribution' },
   ];
   let currentTab = 'overview';
@@ -1109,17 +996,8 @@
   REGIME_WINDOWS.forEach(w => {
     const b = textEl('button', w === regimeWindow ? 'active' : '', w + 'm');
     b.dataset.w = w;
-    b.addEventListener('click', () => { regimeWindow = w; Array.from(regimeWindowSeg.children).forEach(btn => btn.classList.toggle('active', Number(btn.dataset.w) === regimeWindow)); renderFactorRegimeTab(); });
+    b.addEventListener('click', () => { regimeWindow = w; Array.from(regimeWindowSeg.children).forEach(btn => btn.classList.toggle('active', Number(btn.dataset.w) === regimeWindow)); renderFactorLeadership(); });
     regimeWindowSeg.appendChild(b);
-  });
-
-  const REGIME_METRICS = [{ id: 'excess', label: 'Excess return' }, { id: 'sharpe', label: 'Sharpe' }];
-  const regimeMetricSeg = document.getElementById('regimeMetricSeg');
-  REGIME_METRICS.forEach(m => {
-    const b = textEl('button', m.id === regimeMetric ? 'active' : '', m.label);
-    b.dataset.id = m.id;
-    b.addEventListener('click', () => { regimeMetric = m.id; Array.from(regimeMetricSeg.children).forEach(btn => btn.classList.toggle('active', btn.dataset.id === regimeMetric)); renderRegimeExcessChart(); });
-    regimeMetricSeg.appendChild(b);
   });
 
   const sectorSelect = document.getElementById('sectorSelect');
@@ -1138,13 +1016,13 @@
     const zArr = activeFactorOrder().map(f => ({ f, v: statsForTiles[f].z, r: statsForTiles[f].latestReturn })).filter(x => x.v !== null);
     const highestZ = zArr.slice().sort((a,b)=>b.v-a.v)[0];
     const lowestZ = zArr.slice().sort((a,b)=>a.v-b.v)[0];
-    const sectorArr = SECTOR_ORDER.map(s => ({ s, v: trailingReturnDaily(DATA.dailyPrices.dates, DATA.dailyPrices.sectors[s], currentWindowMonths) }));
+    const sectorArr = SECTOR_ORDER.map(s => ({ s, v: trailingCAGRDaily(DATA.dailyPrices.dates, DATA.dailyPrices.sectors[s], currentWindowMonths) }));
     const bestSector = sectorArr.slice().sort((a,b)=>b.v-a.v)[0];
 
     const tiles = [
-      { label: 'Most extended factor (' + currentWindowMonths + 'm z)', dot: factorColor(highestZ.f), value: factorDisplayName(highestZ.f), note: (highestZ.v>=0?'+':'') + highestZ.v.toFixed(2) + 'σ vs own history · ' + fmtSigned(highestZ.r) + ' trailing' },
-      { label: 'Most compressed factor (' + currentWindowMonths + 'm z)', dot: factorColor(lowestZ.f), value: factorDisplayName(lowestZ.f), note: (lowestZ.v>=0?'+':'') + lowestZ.v.toFixed(2) + 'σ vs own history · ' + fmtSigned(lowestZ.r) + ' trailing' },
-      { label: 'Best sector (' + currentWindowMonths + 'm)', dot: sectorColor(bestSector.s), value: bestSector.s, note: fmtSigned(bestSector.v) + ' TRI return' },
+      { label: 'Most extended factor (' + currentWindowMonths + 'm z)', dot: factorColor(highestZ.f), value: factorDisplayName(highestZ.f), note: (highestZ.v>=0?'+':'') + highestZ.v.toFixed(2) + 'σ vs own history · ' + fmtSigned(highestZ.r) + ' ann. trailing' },
+      { label: 'Most compressed factor (' + currentWindowMonths + 'm z)', dot: factorColor(lowestZ.f), value: factorDisplayName(lowestZ.f), note: (lowestZ.v>=0?'+':'') + lowestZ.v.toFixed(2) + 'σ vs own history · ' + fmtSigned(lowestZ.r) + ' ann. trailing' },
+      { label: 'Best sector (' + currentWindowMonths + 'm)', dot: sectorColor(bestSector.s), value: bestSector.s, note: fmtSigned(bestSector.v) + ' ann. TRI return' },
     ];
     tiles.forEach(t => {
       const c = el('div','card tile'); c.appendChild(textEl('div','tile-label',t.label));
@@ -1215,11 +1093,10 @@
       volHead.appendChild(volVal); volRow.appendChild(volHead); volRow.appendChild(buildVolBar(info.volRatio)); rows.appendChild(volRow);
       card.appendChild(rows);
 
-      const retLine = el('div','m-return'); retLine.textContent = 'Trailing ' + currentWindowMonths + 'm: ' + fmtSigned(info.latestReturn);
+      const retLine = el('div','m-return'); retLine.textContent = 'Trailing ' + currentWindowMonths + 'm (ann.): ' + fmtSigned(info.latestReturn);
       retLine.style.color = returnColor(info.latestReturn);
       card.appendChild(retLine);
-      const sparkWrap = el('div','spark-wrap'); card.appendChild(sparkWrap); wrap.appendChild(card);
-      if (info.zHistory.length) drawSparkline(sparkWrap, info.zHistory, color);
+      wrap.appendChild(card);
     });
   }
   // z-score: diverging bar, centered at 0, domain +/-3sigma -- red left of center, green right.
@@ -1281,28 +1158,18 @@
     const mid = el('div','mini-mid'); mid.style.left = '50%'; track.appendChild(mid);
     return track;
   }
-  function drawSparkline(container, values, color) {
-    const w=220,h=34,pad=3;
-    const svg = svgEl('svg', { viewBox:'0 0 '+w+' '+h, width:'100%', height:h, preserveAspectRatio:'none' });
-    const min=Math.min(...values), max=Math.max(...values);
-    const x=i=>pad+(i/(values.length-1))*(w-2*pad), y=v=>h-pad-((v-min)/((max-min)||1))*(h-2*pad);
-    let d=''; values.forEach((v,i)=>{ d+=(i===0?'M':'L')+x(i).toFixed(1)+','+y(v).toFixed(1)+' '; });
-    svg.appendChild(svgEl('path',{d:d,fill:'none',stroke:cvar('--text-muted'),'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
-    const lastX=x(values.length-1), lastY=y(values[values.length-1]);
-    svg.appendChild(svgEl('circle',{cx:lastX,cy:lastY,r:4,fill:color,stroke:cvar('--surface-1'),'stroke-width':2}));
-    container.appendChild(svg);
-  }
-
   // ---------------- regime quadrant: z-score (x) vs vol ratio (y) scatter, per factor ----------------
   function renderRegimeQuadrant(stats) {
     document.getElementById('regimeQuadrantDesc').textContent =
-      'Each factor\'s z-score (how stretched its trailing return is vs. its own history) plotted against its vol ratio (current vs. long-run annualized volatility), both over the trailing ' + currentWindowMonths + ' months. Top-right is extended and running hot; bottom-left is compressed and quiet.';
+      'Z-score (stretch vs. own history) vs. vol ratio (current vs. long-run vol), both over the trailing ' + currentWindowMonths + ' months. Top-right is extended and running hot; bottom-left is compressed and quiet.';
     const container = document.getElementById('regimeQuadrantChart'); container.innerHTML = '';
     const factors = activeFactorOrder().filter(f => stats[f].z !== null && stats[f].volRatio !== null);
     // Unlike the time-series charts elsewhere in this file, a scatter plot's dots must render as true
     // circles, not ellipses -- so match the viewBox to the container's actual rendered pixel width
     // (1 unit = 1px on both axes) instead of stretching a fixed-size viewBox via preserveAspectRatio:none.
-    const W = container.clientWidth || 560, H = 400, padL = 46, padR = 26, padT = 22, padB = 38;
+    // This chart now lives in a narrow side card, so height scales down with the (smaller) width instead
+    // of the fixed 400px used when it spanned the full tab width.
+    const W = container.clientWidth || 300, H = Math.round(Math.max(240, Math.min(340, W * 0.95))), padL = 40, padR = 20, padT = 20, padB = 34;
     const xDomain = 3, yDomain = 2, yMarker = 0.85;
     const x = v => padL + ((Math.max(-xDomain, Math.min(xDomain, v)) + xDomain) / (2 * xDomain)) * (W - padL - padR);
     const y = v => padT + (1 - Math.max(0, Math.min(yDomain, v)) / yDomain) * (H - padT - padB);
@@ -1321,31 +1188,12 @@
     corner(padL + 4, H - padB - 6, 'start', 'Compressed · Low vol');
     corner(W - padR - 4, H - padB - 6, 'end', 'Extended · Low vol');
     const tt = ensureTooltip();
-    // Points can land close together (similar z/volRatio this window) -- greedily pick the first
-    // non-overlapping label slot per point (above, below, further above, further below) instead of
-    // always stacking labels directly above the dot, which is what caused unreadable overlapping text.
     const points = factors.map(f => ({ f, cx: x(stats[f].z), cy: y(stats[f].volRatio) }));
-    const placedLabels = [];
-    function labelFits(bx, by, bw, bh) {
-      return !placedLabels.some(p => bx < p.x + p.w && bx + bw > p.x && by < p.y + p.h && by + bh > p.y);
-    }
-    points.forEach(p => {
-      const w = p.f.length * 6.6 + 6, h = 13;
-      const candidates = [p.cy - 11, p.cy + 20, p.cy - 24, p.cy + 33];
-      let ly = candidates[0];
-      for (const cand of candidates) {
-        ly = cand;
-        if (labelFits(p.cx - w / 2, cand - h + 2, w, h)) break;
-      }
-      placedLabels.push({ x: p.cx - w / 2, y: ly - h + 2, w, h });
-      p.labelY = ly;
-    });
     points.forEach(p => {
       const f = p.f, info = stats[f];
       const cx = p.cx, cy = p.cy;
       const g = svgEl('g', { 'data-series': f, style: 'cursor:pointer' });
       g.appendChild(svgEl('circle', { cx: cx, cy: cy, r: 7, fill: factorColor(f), stroke: cvar('--surface-1'), 'stroke-width': 2 }));
-      const label = svgEl('text', { x: cx, y: p.labelY, 'text-anchor': 'middle', 'font-size': 10.5, 'font-weight': 650, fill: cvar('--text-primary') }); label.textContent = f; g.appendChild(label);
       svg.appendChild(g);
       registerSeriesHover(g, f);
       g.addEventListener('mousemove', (evt) => {
@@ -1364,152 +1212,54 @@
     factors.forEach(f => { const item = el('div', 'legend-item'); item.dataset.series = f; const sw = el('span', 'legend-swatch-line'); sw.style.background = factorColor(f); item.appendChild(sw); item.appendChild(document.createTextNode(factorDisplayName(f))); legend.appendChild(item); registerSeriesHover(item, f); });
   }
 
-  // ---------------- diverging horizontal bar list ----------------
-  function renderDivergingBars(container, items, opts) {
-    opts = opts || {}; container.innerHTML = '';
-    const maxAbs = Math.max(1, ...items.map(it=>Math.abs(it.value)), opts.refValue?Math.abs(opts.refValue):0) * 1.15;
-    items.forEach(it => {
-      const row = el('div','bar-row');
-      const labelEl = el('div','bar-label');
-      if (it.dotColor) {
-        const dot = el('span'); dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;background:'+it.dotColor+';margin-right:6px;vertical-align:middle;';
-        labelEl.appendChild(dot);
-      }
-      labelEl.appendChild(document.createTextNode(it.label));
-      row.appendChild(labelEl);
-      const plot = el('div','bar-plot');
-      const svg = svgEl('svg',{width:'100%',height:'100%',viewBox:'0 0 400 30',preserveAspectRatio:'none'});
-      plot.appendChild(svg); row.appendChild(plot); container.appendChild(row);
-      requestAnimationFrame(() => {
-        const W=400,H=30,cx=W/2, scale=(W/2-8)/maxAbs;
-        svg.appendChild(svgEl('line',{x1:cx,x2:cx,y1:3,y2:H-3,stroke:cvar('--baseline'),'stroke-width':1}));
-        if (opts.refValue!==undefined && opts.refValue!==null) {
-          const rx=cx+opts.refValue*scale;
-          svg.appendChild(svgEl('line',{x1:rx,x2:rx,y1:1,y2:H-1,stroke:cvar('--text-muted'),'stroke-width':1.5}));
-        }
-        const v=it.value||0, bw=Math.abs(v)*scale, barX=v>=0?cx:cx-bw;
-        const rect = svgEl('rect',{x:barX,y:7,width:Math.max(bw,1.5),height:16,rx:4,ry:4,fill:it.color, opacity: it.opacity===undefined?1:it.opacity});
-        svg.appendChild(rect);
-        const labelX=v>=0?cx+bw+6:cx-bw-6, anchor=v>=0?'start':'end';
-        const label = svgEl('text',{x:labelX,y:19,'font-size':11.5,fill:cvar('--text-secondary'),'text-anchor':anchor,'font-weight':650});
-        label.textContent = fmtSigned(v); svg.appendChild(label);
-        const hit = svgEl('rect',{x:0,y:0,width:W,height:H,fill:'transparent',style:'cursor:pointer'});
-        svg.appendChild(hit);
-        attachTooltip(hit, plot, () => it.label + '<br><span style="opacity:.8">' + fmtSigned(v) + '</span>');
-      });
-    });
-    if (opts.refLabel) {
-      const note = el('div','legend',''); note.style.marginTop='16px'; note.style.paddingTop='12px'; note.style.borderTop='1px solid var(--grid)';
-      const item = el('div','legend-item');
-      const line = el('span'); line.style.cssText='width:14px;height:1.5px;background:'+cvar('--text-muted')+';display:inline-block;';
-      item.appendChild(line); item.appendChild(document.createTextNode(opts.refLabel));
-      note.appendChild(item); container.appendChild(note);
-    }
-  }
-
-  // ---------------- factor paired bars: raw vs market neutral factor ----------------
-  function renderFactorPairedBars() {
-    const container = document.getElementById('factorPairedBars');
-    const months = currentWindowMonths;
-
-    if (currentSource === 'nifty') {
-      container.innerHTML = '<h2 style="margin-bottom:4px;">Raw vs Market Neutral Factor return</h2>';
-      const legend = el('div','legend'); legend.style.marginBottom='6px';
-      const li1 = el('div','legend-item'); li1.innerHTML = '<span class="legend-swatch-rect" style="background:'+cvar('--text-secondary')+';opacity:1;"></span>Raw (published index)';
-      const li2 = el('div','legend-item'); li2.innerHTML = '<span class="legend-swatch-rect" style="background:'+cvar('--text-secondary')+';opacity:0.35;"></span>Market Neutral Factor';
-      legend.appendChild(li1); legend.appendChild(li2); container.appendChild(legend);
-
-      const maxAbs = Math.max(1, ...FACTOR_ORDER.flatMap(f => [
-        Math.abs(trailingReturnDaily(DATA.dailyPrices.dates, DATA.dailyPrices.factors[f], months) || 0),
-        Math.abs(trailingReturn(DATA.series.factorsOrtho[f], DATA.dates, months) || 0),
-      ])) * 1.15;
-
-      FACTOR_ORDER.forEach(f => {
-        const block = el('div','paired-block');
-        const head = el('div','paired-head');
-        const dot = el('span','m-dot'); dot.style.cssText='width:9px;height:9px;border-radius:50%;background:'+factorColor(f)+';';
-        head.appendChild(dot); head.appendChild(document.createTextNode(f));
-        block.appendChild(head);
-        const rows = el('div');
-        block.appendChild(rows);
-        container.appendChild(block);
-        const rawV = trailingReturnDaily(DATA.dailyPrices.dates, DATA.dailyPrices.factors[f], months);
-        const orthoV = trailingReturn(DATA.series.factorsOrtho[f], DATA.dates, months);
-        renderDivergingBarsFixedScale(rows, [
-          { label: 'Raw', value: rawV, color: factorColor(f), opacity: 1 },
-          { label: 'Market Neutral Factor', value: orthoV, color: factorColor(f), opacity: 0.35 },
-        ], maxAbs);
-      });
-    } else {
-      container.innerHTML = '<h2 id="ffPairedHead" style="margin-bottom:4px;">Fama French style factor return</h2>'
-        + '<p class="section-desc collapsible" id="ffPairedDesc" style="margin-bottom:10px;">These are already long short, self financing portfolios, so there is no separate market neutral version to strip out. The trailing return below is the whole story.</p>';
-      addInfoToggle(container.querySelector('#ffPairedHead'), container.querySelector('#ffPairedDesc'));
-      const rows = el('div'); container.appendChild(rows);
-      const items = FF_FACTOR_ORDER.map(f => ({ label: factorDisplayName(f), value: trailingReturn(DATA.ff.series.factors[f], DATA.ff.dates, months), color: factorColor(f) }));
-      renderDivergingBars(rows, items);
-    }
-  }
-  function renderDivergingBarsFixedScale(container, items, maxAbs) {
-    container.innerHTML = '';
-    items.forEach(it => {
-      const row = el('div','bar-row'); row.style.gridTemplateColumns='150px 1fr';
-      row.appendChild(textEl('div','bar-label',it.label));
-      const plot = el('div','bar-plot');
-      const svg = svgEl('svg',{width:'100%',height:'100%',viewBox:'0 0 400 26',preserveAspectRatio:'none'});
-      plot.appendChild(svg); row.appendChild(plot); container.appendChild(row);
-      requestAnimationFrame(() => {
-        const W=400,H=26,cx=W/2, scale=(W/2-8)/maxAbs;
-        svg.appendChild(svgEl('line',{x1:cx,x2:cx,y1:2,y2:H-2,stroke:cvar('--baseline'),'stroke-width':1}));
-        const v=it.value||0, bw=Math.abs(v)*scale, barX=v>=0?cx:cx-bw;
-        svg.appendChild(svgEl('rect',{x:barX,y:5,width:Math.max(bw,1.5),height:16,rx:4,ry:4,fill:it.color,opacity:it.opacity}));
-        const labelX=v>=0?cx+bw+6:cx-bw-6, anchor=v>=0?'start':'end';
-        const label = svgEl('text',{x:labelX,y:17,'font-size':11.5,fill:cvar('--text-secondary'),'text-anchor':anchor,'font-weight':650});
-        label.textContent = fmtSigned(v); svg.appendChild(label);
-      });
-    });
-  }
-
-  // ---------------- factor performance summary: return + vol in one table, drawdown as its own chart below (so the dates are visible) ----------------
+  // ---------------- factor performance summary: fixed-horizon returns, trailing vol, and current drawdown
+  // in one table -- REGIME_PERIODS/regimeFactorPeriodValue/regimeMarketPeriodValue are defined further down ----------------
   function renderFactorSummary() {
     const months = currentWindowMonths;
-    document.getElementById('factorSummaryDesc').textContent = currentSource === 'nifty'
-      ? "Each raw factor index's return and annualized volatility over the trailing " + months + ' months, the same window as the bars above. See the drawdown chart below for how each factor got there.'
-      : "Each Fama French style factor's return and annualized volatility over the trailing " + months + ' months. See the drawdown chart below for how each factor got there.';
-    const rows = (currentSource === 'nifty' ? FACTOR_ORDER : FF_FACTOR_ORDER).map(f => {
-      if (currentSource === 'nifty') {
-        return {
-          f,
-          ret: trailingReturnDaily(DATA.dailyPrices.dates, DATA.dailyPrices.factors[f], months),
-          vol: annualizedVolDaily(DATA.dailyPrices.dates, DATA.dailyPrices.factors[f], months),
-        };
-      }
-      return {
-        f,
-        ret: trailingReturn(DATA.ff.series.factors[f], DATA.ff.dates, months),
-        vol: annualizedVol(DATA.ff.series.factors[f], months),
-      };
-    });
+    const order = activeFactorOrder();
+    document.getElementById('factorSummaryDesc').textContent =
+      "Annualized (CAGR) return across standard horizons, so you can see whether a factor's edge is a recent blip or has held up for years. Vol is annualized volatility over the current " + months + "-month return window (top of page). Current DD is how far below its own all-time high the factor sits right now.";
     const table = document.getElementById('factorSummaryTable'); table.innerHTML = '';
     const thead = el('thead'); const htr = el('tr');
     htr.appendChild(el('th', null, 'Factor'));
-    htr.appendChild(el('th', null, 'Return (' + months + 'm)'));
-    htr.appendChild(el('th', null, 'Volatility (ann.)'));
+    REGIME_PERIODS.forEach(p => htr.appendChild(el('th', null, p.label)));
+    htr.appendChild(el('th', null, 'Vol (' + months + 'm, ann.)'));
+    htr.appendChild(el('th', null, 'Current DD'));
     thead.appendChild(htr); table.appendChild(thead);
     const tbody = el('tbody');
-    rows.forEach(row => {
+    function volFor(f) {
+      return currentSource === 'nifty'
+        ? annualizedVolDaily(DATA.dailyPrices.dates, DATA.dailyPrices.factors[f], months)
+        : annualizedVol(DATA.ff.series.factors[f], months);
+    }
+    function appendRow(label, dotColor, periodFn, vol, ddValue, italic) {
       const tr = el('tr');
       const fc = el('td', 'sector-cell');
-      fc.innerHTML = '<span style="display:inline-flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;border-radius:50%;background:' + factorColor(row.f) + ';display:inline-block;"></span>' + factorDisplayName(row.f) + '</span>';
+      fc.innerHTML = '<span style="display:inline-flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;border-radius:50%;background:' + dotColor + ';display:inline-block;"></span>' + label + '</span>';
+      if (italic) fc.style.fontStyle = 'italic';
       tr.appendChild(fc);
-      const retTd = el('td', 'r2cell');
-      retTd.textContent = fmtSigned(row.ret);
-      retTd.style.color = returnColor(row.ret);
-      tr.appendChild(retTd);
-      const volTd = el('td', 'r2cell');
-      volTd.textContent = row.vol !== null && row.vol !== undefined ? fmtNum(row.vol, 1) + '%' : 'N/A';
+      REGIME_PERIODS.forEach(p => {
+        const v = periodFn(p.months);
+        const td = el('td', 'r2cell'); td.textContent = fmtSigned(v); td.style.color = returnColor(v);
+        if (italic) td.style.fontStyle = 'italic';
+        tr.appendChild(td);
+      });
+      const volTd = el('td', 'r2cell'); volTd.textContent = vol !== null && vol !== undefined ? fmtNum(vol, 1) + '%' : 'N/A';
+      if (italic) volTd.style.fontStyle = 'italic';
       tr.appendChild(volTd);
+      const ddTd = el('td', 'r2cell'); ddTd.textContent = fmtSigned(ddValue); ddTd.style.color = returnColor(ddValue);
+      if (italic) ddTd.style.fontStyle = 'italic';
+      tr.appendChild(ddTd);
       tbody.appendChild(tr);
+    }
+    order.forEach(f => {
+      const dd = currentSource === 'nifty' ? currentDrawdownDaily(DATA.dailyPrices.factors[f]) : currentDrawdownFromReturns(DATA.ff.series.factors[f]);
+      appendRow(factorDisplayName(f), factorColor(f), (m) => regimeFactorPeriodValue(f, m), volFor(f), dd, false);
     });
+    const mktName = currentSource === 'nifty' ? 'NIFTY 500' : 'MktRF';
+    const mktVol = currentSource === 'nifty' ? annualizedVolDaily(DATA.dailyPrices.dates, DATA.dailyPrices.market, months) : annualizedVol(DATA.ff.series.mktrf, months);
+    const mktDD = currentSource === 'nifty' ? currentDrawdownDaily(DATA.dailyPrices.market) : currentDrawdownFromReturns(DATA.ff.series.mktrf);
+    appendRow(mktName, cvar('--text-muted'), regimeMarketPeriodValue, mktVol, mktDD, true);
     table.appendChild(tbody);
   }
 
@@ -1598,79 +1348,6 @@
   // ---------------- regime line chart: like renderDrawdownChart but for two-sided ("centered",
   // symmetric around 0 -- rolling excess return/Sharpe) or auto-fit single-line ("auto" -- rolling
   // avg correlation) data, since neither is one-sided-from-zero the way drawdown always is ----------------
-  function renderRegimeLineChart(containerId, legendId, seriesMap, order, colorFn, labelFn, yMode, fmtFn) {
-    fmtFn = fmtFn || (yMode === 'centered' ? (v => fmtSigned(v, 1)) : (v => fmtNum(v, 2)));
-    const container = document.getElementById(containerId); container.innerHTML = '';
-    const present = order.filter(nm => seriesMap[nm] && seriesMap[nm].values.length);
-    if (!present.length) return;
-    const dates = seriesMap[present[0]].dates;
-    const N = dates.length;
-    const W = 1080, H = 220, padL = 44, padR = 18, padT = 10, padB = 24;
-    const allVals = present.flatMap(nm => seriesMap[nm].values.filter(v => v !== null && !isNaN(v)));
-    let minV, maxV;
-    if (yMode === 'centered') {
-      const maxAbs = Math.max(0.1, ...allVals.map(Math.abs)) * 1.15;
-      minV = -maxAbs; maxV = maxAbs;
-    } else {
-      const lo = Math.min(...allVals), hi = Math.max(...allVals);
-      const pad = Math.max(0.02, (hi - lo) * 0.15);
-      minV = lo - pad; maxV = hi + pad;
-    }
-    const x = i => padL + (N <= 1 ? 0 : (i / (N - 1)) * (W - padL - padR));
-    const y = v => padT + (1 - (v - minV) / (maxV - minV)) * (H - padT - padB);
-    const svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', height: H, preserveAspectRatio: 'none' });
-    const gridVals = yMode === 'centered' ? [minV, 0, maxV] : [minV, (minV + maxV) / 2, maxV];
-    gridVals.forEach(gv => {
-      const isZero = yMode === 'centered' && Math.abs(gv) < 1e-9;
-      svg.appendChild(svgEl('line', { x1: padL, x2: W - padR, y1: y(gv), y2: y(gv), stroke: isZero ? cvar('--baseline') : cvar('--grid'), 'stroke-width': 1 }));
-      const t = svgEl('text', { x: padL - 6, y: y(gv) + 3, 'text-anchor': 'end', 'font-size': 10, fill: cvar('--text-muted') }); t.textContent = fmtFn(gv); svg.appendChild(t);
-    });
-    const tickEvery = Math.max(1, Math.round(N / 8));
-    for (let i = 0; i < N; i += tickEvery) {
-      const t = svgEl('text', { x: x(i), y: H - 6, 'text-anchor': 'middle', 'font-size': 9.5, fill: cvar('--text-muted') }); t.textContent = dates[i]; svg.appendChild(t);
-    }
-    const crosshair = svgEl('line', { x1: 0, x2: 0, y1: padT, y2: H - padB, stroke: cvar('--text-muted'), 'stroke-width': 1, opacity: 0 });
-    const dotsGroup = svgEl('g', {});
-    present.forEach(nm => {
-      const vals = seriesMap[nm].values;
-      let d = '', started = false;
-      vals.forEach((v, i) => { if (v === null || isNaN(v)) return; d += (!started ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(v).toFixed(1) + ' '; started = true; });
-      const path = svgEl('path', { d: d, fill: 'none', stroke: colorFn(nm), 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', 'data-series': nm });
-      svg.appendChild(path); registerSeriesHover(path, nm);
-      let lastIdx = vals.length - 1; while (lastIdx >= 0 && (vals[lastIdx] === null || isNaN(vals[lastIdx]))) lastIdx--;
-      if (lastIdx >= 0) svg.appendChild(svgEl('circle', { cx: x(lastIdx), cy: y(vals[lastIdx]), r: 4, fill: colorFn(nm), stroke: cvar('--surface-1'), 'stroke-width': 2 }));
-      const dot = svgEl('circle', { r: 4, fill: colorFn(nm), stroke: cvar('--surface-1'), 'stroke-width': 2, opacity: 0 }); dot.dataset.name = nm; dotsGroup.appendChild(dot);
-    });
-    svg.appendChild(crosshair); svg.appendChild(dotsGroup);
-    const hit = svgEl('rect', { x: padL, y: padT, width: W - padL - padR, height: H - padT - padB, fill: 'transparent', style: 'cursor:crosshair' });
-    svg.appendChild(hit); container.appendChild(svg);
-    const tt = ensureTooltip();
-    function onMove(evt) {
-      const rectSvg = svg.getBoundingClientRect();
-      const evX = (evt.touches ? evt.touches[0].clientX : evt.clientX);
-      const relX = evX - rectSvg.left;
-      const frac = Math.max(0, Math.min(1, (relX - (padL * rectSvg.width / W)) / ((W - padL - padR) * rectSvg.width / W)));
-      const idx = Math.round(frac * (N - 1));
-      crosshair.setAttribute('x1', x(idx)); crosshair.setAttribute('x2', x(idx)); crosshair.setAttribute('opacity', 1);
-      let html = '<div class="tt-date">' + dates[idx] + '</div>';
-      dotsGroup.childNodes.forEach(dot => {
-        const nm = dot.dataset.name, v = seriesMap[nm].values[idx];
-        if (v === null || isNaN(v)) { dot.setAttribute('opacity', 0); return; }
-        dot.setAttribute('cx', x(idx)); dot.setAttribute('cy', y(v)); dot.setAttribute('opacity', 1);
-        html += '<div class="tt-row"><span class="tt-key" style="background:' + colorFn(nm) + '"></span>' + labelFn(nm) + '<span class="tt-val">' + fmtFn(v) + '</span></div>';
-      });
-      tt.innerHTML = html; tt.style.left = evX + 'px'; tt.style.top = (rectSvg.top + window.scrollY) + 'px'; tt.classList.add('show');
-    }
-    hit.addEventListener('mousemove', onMove);
-    hit.addEventListener('mouseleave', () => { crosshair.setAttribute('opacity', 0); dotsGroup.childNodes.forEach(d => d.setAttribute('opacity', 0)); tt.classList.remove('show'); });
-    // A single series names itself in the section heading, so no legend box is needed for it.
-    const legend = legendId ? document.getElementById(legendId) : null;
-    if (legend) {
-      legend.innerHTML = '';
-      present.forEach(nm => { const item = el('div', 'legend-item'); item.dataset.series = nm; const sw = el('span', 'legend-swatch-line'); sw.style.background = colorFn(nm); item.appendChild(sw); item.appendChild(document.createTextNode(labelFn(nm))); legend.appendChild(item); registerSeriesHover(item, nm); });
-    }
-  }
-
   // ---------------- leadership timeline: categorical strip -- one colored segment per period,
   // colored by whichever series led that period, hover for the exact date + leader + return ----------------
   function renderLeadershipStrip(containerId, legendId, leadership, order, colorFn, labelFn) {
@@ -1710,73 +1387,6 @@
     hit.addEventListener('mouseleave', () => { marker.setAttribute('opacity', 0); tt.classList.remove('show'); });
     const legend = document.getElementById(legendId); legend.innerHTML = '';
     order.forEach(nm => { const item = el('div', 'legend-item'); const sw = el('span', 'legend-swatch-rect'); sw.style.background = colorFn(nm); item.appendChild(sw); item.appendChild(document.createTextNode(labelFn(nm))); legend.appendChild(item); });
-  }
-
-  // ---------------- factor multi-line chart (raw returns) ----------------
-  function renderFactorLine() {
-    const container = document.getElementById('factorLine');
-    const factors = activeFactorOrder();
-    const dates = currentSource === 'nifty' ? DATA.dates : DATA.ff.dates;
-    const seriesFor = currentSource === 'nifty' ? (f) => DATA.series.factorsRaw[f] : (f) => DATA.ff.series.factors[f];
-    const sampleStart = currentSource === 'nifty' ? DATA.meta.sampleStart : DATA.ff.meta.sampleStart;
-    const kindLabel = currentSource === 'nifty' ? 'each raw factor index' : 'each Fama French style factor';
-    container.innerHTML = '<h2 id="cumPerfHead" style="margin-bottom:2px;">Cumulative factor performance</h2>'
-      + '<p class="section-desc collapsible" id="cumPerfDesc" style="margin-bottom:8px;">Growth of ₹100 in ' + kindLabel + ' since ' + sampleStart + ' (log scale). Factors have compounded to very different multiples.</p>';
-    addInfoToggle(container.querySelector('#cumPerfHead'), container.querySelector('#cumPerfDesc'));
-    const plotWrap = el('div'); plotWrap.style.position='relative'; container.appendChild(plotWrap);
-    const N = dates.length;
-    const growth = {};
-    factors.forEach(f => {
-      let g = 100; const arr = [];
-      seriesFor(f).forEach(v => { g *= (1 + v/100); arr.push(g); });
-      growth[f] = arr;
-    });
-    const W=560,H=230,padL=40,padR=18,padT=10,padB=20;
-    const allVals = factors.flatMap(f => growth[f]);
-    const logMin = Math.log10(Math.min(...allVals) * 0.9);
-    const logMax = Math.log10(Math.max(...allVals) * 1.1);
-    const x = i => padL + (i/(N-1))*(W-padL-padR);
-    const y = v => padT + (1 - (Math.log10(v)-logMin)/(logMax-logMin)) * (H-padT-padB);
-    const svg = svgEl('svg',{viewBox:'0 0 '+W+' '+H, width:'100%', height:H, preserveAspectRatio:'none'});
-    const gridVals = [100, 300, 1000, 3000, 10000].filter(v => v >= Math.pow(10,logMin) && v <= Math.pow(10,logMax));
-    gridVals.forEach(gv => {
-      svg.appendChild(svgEl('line',{x1:padL,x2:W-padR,y1:y(gv),y2:y(gv),stroke: gv===100?cvar('--baseline'):cvar('--grid'),'stroke-width':1}));
-      const t = svgEl('text',{x:padL-6,y:y(gv)+3,'text-anchor':'end','font-size':10,fill:cvar('--text-muted')}); t.textContent='₹'+gv.toLocaleString(); svg.appendChild(t);
-    });
-    const crosshair = svgEl('line',{x1:0,x2:0,y1:padT,y2:H-padB,stroke:cvar('--text-muted'),'stroke-width':1,opacity:0});
-    const dotsGroup = svgEl('g',{});
-    factors.forEach(f => {
-      const vals = growth[f];
-      let d=''; vals.forEach((v,i)=>{ d+=(i===0?'M':'L')+x(i).toFixed(1)+','+y(v).toFixed(1)+' '; });
-      const path = svgEl('path',{d:d,fill:'none',stroke:factorColor(f),'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round','data-series':f});
-      svg.appendChild(path); registerSeriesHover(path, f);
-      const lx=x(vals.length-1), ly=y(vals[vals.length-1]);
-      svg.appendChild(svgEl('circle',{cx:lx,cy:ly,r:4,fill:factorColor(f),stroke:cvar('--surface-1'),'stroke-width':2}));
-      const dot = svgEl('circle',{r:4,fill:factorColor(f),stroke:cvar('--surface-1'),'stroke-width':2,opacity:0}); dot.dataset.factor=f; dotsGroup.appendChild(dot);
-    });
-    svg.appendChild(crosshair); svg.appendChild(dotsGroup);
-    const hit = svgEl('rect',{x:padL,y:padT,width:W-padL-padR,height:H-padT-padB,fill:'transparent',style:'cursor:crosshair'});
-    svg.appendChild(hit); plotWrap.appendChild(svg);
-    const tt = ensureTooltip();
-    function onMove(evt) {
-      const rectSvg = svg.getBoundingClientRect();
-      const evX = (evt.touches ? evt.touches[0].clientX : evt.clientX);
-      const relX = evX - rectSvg.left;
-      const frac = Math.max(0, Math.min(1, (relX - (padL*rectSvg.width/W)) / ((W-padL-padR)*rectSvg.width/W)));
-      const idx = Math.round(frac*(N-1));
-      crosshair.setAttribute('x1',x(idx)); crosshair.setAttribute('x2',x(idx)); crosshair.setAttribute('opacity',1);
-      let html = '<div class="tt-date">'+dates[idx]+'</div>';
-      dotsGroup.childNodes.forEach(dot => {
-        const f = dot.dataset.factor, v = growth[f][idx];
-        dot.setAttribute('cx',x(idx)); dot.setAttribute('cy',y(v)); dot.setAttribute('opacity',1);
-        html += '<div class="tt-row"><span class="tt-key" style="background:'+factorColor(f)+'"></span>'+factorDisplayName(f)+'<span class="tt-val">₹'+v.toFixed(0)+'</span></div>';
-      });
-      tt.innerHTML = html; tt.style.left=evX+'px'; tt.style.top=(rectSvg.top+window.scrollY)+'px'; tt.classList.add('show');
-    }
-    hit.addEventListener('mousemove', onMove);
-    hit.addEventListener('mouseleave', () => { crosshair.setAttribute('opacity',0); dotsGroup.childNodes.forEach(d=>d.setAttribute('opacity',0)); tt.classList.remove('show'); });
-    const legend = document.getElementById('factorLineLegend'); legend.innerHTML='';
-    factors.forEach(f => { const item=el('div','legend-item'); item.dataset.series=f; const sw=el('span','legend-swatch-line'); sw.style.background=factorColor(f); item.appendChild(sw); item.appendChild(document.createTextNode(factorDisplayName(f))); legend.appendChild(item); registerSeriesHover(item, f); });
   }
 
   // ---------------- loadings heatmap (live regression, all sectors) ----------------
@@ -1945,23 +1555,23 @@
   function renderSectorLeaderboard() {
     const months = currentWindowMonths;
 
-    const benchmark = trailingReturnDaily(DATA.dailyPrices.dates, DATA.dailyPrices.market, months);
+    const benchmark = trailingCAGRDaily(DATA.dailyPrices.dates, DATA.dailyPrices.market, months);
     document.getElementById('leaderboardBenchmark').innerHTML =
-      'NIFTY 500 (market) return over the selected window: <strong style="color:' + returnColor(benchmark) + '">' + fmtSigned(benchmark) + '</strong>';
+      'NIFTY 500 (market) annualized return over the selected window: <strong style="color:' + returnColor(benchmark) + '">' + fmtSigned(benchmark) + '</strong>';
 
     document.getElementById('leaderboardDesc').textContent =
-      "Each sector's return and annualized volatility over the selected window. See the drawdown chart below for the path each sector actually took to get there.";
+      "Each sector's annualized return and annualized volatility over the selected window. See the drawdown chart below for the path each sector actually took to get there.";
 
     const rows = SECTOR_ORDER.map(s => ({
       s,
-      ret: trailingReturnDaily(DATA.dailyPrices.dates, DATA.dailyPrices.sectors[s], months),
+      ret: trailingCAGRDaily(DATA.dailyPrices.dates, DATA.dailyPrices.sectors[s], months),
       vol: annualizedVolDaily(DATA.dailyPrices.dates, DATA.dailyPrices.sectors[s], months),
     })).sort((a, b) => (b.ret ?? -Infinity) - (a.ret ?? -Infinity));
 
     const table = document.getElementById('leaderboardTable'); table.innerHTML = '';
     const thead = el('thead'); const htr = el('tr');
     htr.appendChild(el('th', null, 'Sector'));
-    htr.appendChild(el('th', null, 'Return (' + months + 'm)'));
+    htr.appendChild(el('th', null, 'Return (' + months + 'm, ann.)'));
     htr.appendChild(el('th', null, 'Volatility (ann.)'));
     thead.appendChild(htr); table.appendChild(thead);
 
@@ -2119,80 +1729,15 @@
     { label: '7Y', months: 84 }, { label: '10Y', months: 120 },
   ];
   function regimeFactorPeriodValue(f, months) {
-    if (currentSource === 'nifty') {
-      return months < 12
-        ? trailingReturnDaily(DATA.dailyPrices.dates, DATA.dailyPrices.factors[f], months)
-        : trailingCAGRDaily(DATA.dailyPrices.dates, DATA.dailyPrices.factors[f], months);
-    }
-    return months < 12
-      ? trailingReturn(DATA.ff.series.factors[f], null, months)
+    return currentSource === 'nifty'
+      ? trailingCAGRDaily(DATA.dailyPrices.dates, DATA.dailyPrices.factors[f], months)
       : trailingCAGRFromReturns(DATA.ff.series.factors[f], months);
   }
   function regimeMarketPeriodValue(months) {
-    if (currentSource === 'nifty') {
-      return months < 12
-        ? trailingReturnDaily(DATA.dailyPrices.dates, DATA.dailyPrices.market, months)
-        : trailingCAGRDaily(DATA.dailyPrices.dates, DATA.dailyPrices.market, months);
-    }
-    return months < 12
-      ? trailingReturn(DATA.ff.series.mktrf, null, months)
+    return currentSource === 'nifty'
+      ? trailingCAGRDaily(DATA.dailyPrices.dates, DATA.dailyPrices.market, months)
       : trailingCAGRFromReturns(DATA.ff.series.mktrf, months);
   }
-  function regimeAppendRow(tbody, label, dotColor, periodFn, ddValue, italic) {
-    const tr = el('tr');
-    const fc = el('td', 'sector-cell');
-    fc.innerHTML = '<span style="display:inline-flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;border-radius:50%;background:' + dotColor + ';display:inline-block;"></span>' + label + '</span>';
-    if (italic) fc.style.fontStyle = 'italic';
-    tr.appendChild(fc);
-    REGIME_PERIODS.forEach(p => {
-      const v = periodFn(p.months);
-      const td = el('td', 'r2cell'); td.textContent = fmtSigned(v); td.style.color = returnColor(v);
-      if (italic) td.style.fontStyle = 'italic';
-      tr.appendChild(td);
-    });
-    const ddTd = el('td', 'r2cell'); ddTd.textContent = fmtSigned(ddValue); ddTd.style.color = returnColor(ddValue);
-    if (italic) ddTd.style.fontStyle = 'italic';
-    tr.appendChild(ddTd);
-    tbody.appendChild(tr);
-  }
-  function renderRegimePerfTable() {
-    const order = activeFactorOrder();
-    const table = document.getElementById('regimePerfTable'); table.innerHTML = '';
-    const thead = el('thead'); const htr = el('tr');
-    htr.appendChild(el('th', null, 'Factor'));
-    REGIME_PERIODS.forEach(p => htr.appendChild(el('th', null, p.label)));
-    htr.appendChild(el('th', null, 'Current DD'));
-    thead.appendChild(htr); table.appendChild(thead);
-    const tbody = el('tbody');
-    order.forEach(f => {
-      const dd = currentSource === 'nifty' ? currentDrawdownDaily(DATA.dailyPrices.factors[f]) : currentDrawdownFromReturns(DATA.ff.series.factors[f]);
-      regimeAppendRow(tbody, factorDisplayName(f), factorColor(f), (months) => regimeFactorPeriodValue(f, months), dd, false);
-    });
-    const mktName = currentSource === 'nifty' ? 'NIFTY 500' : 'MktRF';
-    const mktDD = currentSource === 'nifty' ? currentDrawdownDaily(DATA.dailyPrices.market) : currentDrawdownFromReturns(DATA.ff.series.mktrf);
-    regimeAppendRow(tbody, mktName, cvar('--text-muted'), regimeMarketPeriodValue, mktDD, true);
-    table.appendChild(tbody);
-  }
-
-  function renderRegimeExcessChart() {
-    const order = activeFactorOrder();
-    const isSharpe = regimeMetric === 'sharpe';
-    const dates = currentSource === 'nifty' ? DATA.dates : DATA.ff.dates;
-    const marketSeries = currentSource === 'nifty' ? DATA.series.market : DATA.ff.series.mktrf;
-    const factorSeriesFor = currentSource === 'nifty' ? (f) => DATA.series.factorsRaw[f] : (f) => DATA.ff.series.factors[f];
-    document.getElementById('regimeExcessDesc').textContent = isSharpe
-      ? 'Rolling ' + regimeWindow + '-month Sharpe ratio for each factor; a smoother, risk-adjusted read than a single trailing return.'
-      : "Rolling " + regimeWindow + "-month CAGR of each factor minus Nifty's CAGR over the same window, to check whether a factor's edge has been persistent or came in bursts.";
-    const seriesMap = {};
-    order.forEach(f => {
-      seriesMap[f] = isSharpe
-        ? rollingSharpe(dates, factorSeriesFor(f), regimeWindow)
-        : rollingExcessCAGR(dates, factorSeriesFor(f), marketSeries, regimeWindow);
-    });
-    const fmtFn = isSharpe ? (v => (v >= 0 ? '+' : '') + v.toFixed(2)) : (v => fmtSigned(v, 1));
-    renderRegimeLineChart('regimeExcessChart', 'regimeExcessLegend', seriesMap, order, factorColor, factorDisplayName, 'centered', fmtFn);
-  }
-
   function renderFactorLeadership() {
     const order = activeFactorOrder();
     const dates = currentSource === 'nifty' ? DATA.dates : DATA.ff.dates;
@@ -2202,22 +1747,6 @@
       'Which factor had the best trailing ' + regimeWindow + '-month return as of each month shows whether leadership is rotating or one factor has dominated throughout.';
     const leadership = computeLeadership(dates, seriesMap, order, regimeWindow);
     renderLeadershipStrip('factorLeadershipChart', 'factorLeadershipLegend', leadership, order, factorColor, factorDisplayName);
-  }
-
-  function renderRegimeCorrChart() {
-    const dates = currentSource === 'nifty' ? DATA.dates : DATA.ff.dates;
-    const order = currentSource === 'nifty' ? FACTOR_ORDER : FF_FACTOR_ORDER;
-    const seriesMap = {};
-    order.forEach(f => { seriesMap[f] = currentSource === 'nifty' ? DATA.series.factorsOrtho[f] : DATA.ff.series.factors[f]; });
-    const avg = rollingAvgCorrelation(dates, seriesMap, order, 12);
-    renderRegimeLineChart('regimeCorrChart', null, { avg }, ['avg'], () => cvar('--cat-1'), () => 'Average pairwise correlation', 'auto');
-  }
-
-  function renderFactorRegimeTab() {
-    renderRegimePerfTable();
-    renderRegimeExcessChart();
-    renderFactorLeadership();
-    renderRegimeCorrChart();
   }
 
   // ---------------- sector leadership timeline (Sector Performance tab) ----------------
@@ -2623,17 +2152,17 @@
     syncWindowSliders();
     syncLookbackSegs();
     updateAsOfNote();
-    document.getElementById('returnWindowGroup').style.display = currentTab === 'attribution' ? 'none' : '';
+    document.getElementById('returnWindowGroup').style.display = (currentTab === 'attribution' || currentTab === 'factorExposure') ? 'none' : '';
+    document.getElementById('lookbackGroup').style.display = currentTab === 'sectorPerf' ? 'none' : '';
     const latestFits = latestFitAllSectors(currentLookback);
     const factorStats = computeFactorStats(currentSource, currentWindowMonths);
     renderTiles(factorStats);
     renderFactorStats(factorStats);
     renderRegimeQuadrant(factorStats);
-    renderFactorPairedBars();
     renderFactorSummary();
     renderFactorDrawdownChart();
-    renderFactorLine();
     renderCorrelations();
+    renderFactorLeadership();
     renderSectorLeaderboard();
     renderSectorDrawdownChart();
     renderSectorLeadership();
@@ -2641,7 +2170,6 @@
     renderRollingVIFChart();
     renderRollingSection();
     refreshAttribResults();
-    renderFactorRegimeTab();
   }
   initAttributionTab();
   render();
