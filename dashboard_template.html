@@ -1913,8 +1913,8 @@
     }
     const { fit, spec } = result;
     card.appendChild(textEl('p', 'section-desc',
-      'Sample: ' + fit.dates[0] + ' to ' + fit.dates[fit.dates.length - 1] + ' (' + fit.n + ' months'
-      + (fit.n < spec.dates.length ? ' of ' + spec.dates.length + ' overlap available' : ' overlap') + '). '
+      'Sample: ' + fit.dates[0] + ' to ' + fit.dates[fit.dates.length - 1] + ', the most recent ' + fit.n + ' month(s) per your Regression Lookback setting.'
+      + (fit.n < spec.dates.length ? ' ' + spec.dates.length + ' months of overlapping history are available in total; widen Regression Lookback above to use more.' : ' That is all the overlapping history available with this model.') + ' '
       + 'R² ' + fit.r2.toFixed(2) + (fit.adjR2 !== null ? ' · Adj. R² ' + fit.adjR2.toFixed(2) : '') + ' · N=' + fit.n + '.'));
 
     const rows = el('div', 'attrib-rows');
@@ -2091,7 +2091,7 @@
     const niftyResult = runAttributionModel(lastAttribMonthly, 'nifty', currentLookback);
     const ffResult = runAttributionModel(lastAttribMonthly, 'ff', currentLookback);
     const noteEl = document.getElementById('attribResultsNote');
-    if (noteEl) noteEl.textContent = 'Regression lookback: trailing ' + currentLookback + ' month(s) of your series -- drag the Regression Lookback control above to change it.';
+    if (noteEl) noteEl.textContent = 'Regression lookback: trailing ' + currentLookback + ' month(s) of your series. Drag the Regression Lookback control above to change it.';
 
     if (!niftyResult.fit && !ffResult.fit) {
       resultsSection.style.display = 'none';
